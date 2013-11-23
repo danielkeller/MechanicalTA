@@ -4,15 +4,17 @@ import com.trolltech.qt.gui.*;
 import com.trolltech.qt.gui.QSizePolicy.Policy;
 
 public class MainWindow {
+	QFrame window;
 	public MainWindow() {
-		QFrame window = new QFrame();
+		window = new QFrame();
+		window.setWindowTitle("Mechanical TA");
 		window.setMinimumSize(400, 300);
-		window.setSizePolicy(new QSizePolicy(Policy.Minimum, Policy.Minimum));
+		window.resize(400, 300);
+		window.setSizePolicy(new QSizePolicy(Policy.Preferred, Policy.Preferred));
 		
-		QLabel label = new QLabel(window);
-		label.setText("Hello world!");
-		label.setToolTip("Motherf*ckaaaaaaasss");
 		window.show();
+		
+		new LoginWindow(window);
 		QApplication.exec();
 	}
 }
