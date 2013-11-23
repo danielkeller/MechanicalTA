@@ -6,39 +6,11 @@ import java.util.Scanner;
 
 import javax.net.ssl.*;
 
-import org.scribe.builder.ServiceBuilder;
-import org.scribe.builder.api.DefaultApi20;
-import org.scribe.model.OAuthConfig;
-import org.scribe.model.Verifier;
-import org.scribe.oauth.*;
-
 import com.fasterxml.jackson.core.*;
 
 public class Auth {
-	/*
-	private static class LearningstudioAPI extends DefaultApi20 {
-		public String getAccessTokenEndpoint() {
-			return url;
-		}
-		public String getAuthorizationUrl(OAuthConfig conf) {
-			return null;
-		}
-	
-	}
-	
-	private static String url; 
-	*/
 	public static boolean Authenticate(String domain, String client, String user, String pass) throws IOException {
 		URL url = new URL("https://" + domain + "/token");
-		/*
-		OAuthService service = new ServiceBuilder()
-		.provider(LearningstudioAPI.class)
-		.apiKey("c670ad06-8b47-490e-a604-884a862f051e")
-		.apiSecret("8a72063be6d0409da86a5c239e39fd10")
-		.build();
-		
-		Token accessToken = service.getAccessToken(null, new Verifier()
-		*/
 		
         StringBuilder data = new StringBuilder();
         data.append("grant_type=" + URLEncoder.encode("password", "UTF-8"));
