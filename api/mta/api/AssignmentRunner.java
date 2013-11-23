@@ -1,0 +1,53 @@
+package mta.api;
+
+import java.util.List;
+
+import org.junit.rules.*;
+import org.junit.runner.Description;
+import org.junit.runners.BlockJUnit4ClassRunner;
+import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.InitializationError;
+
+public class AssignmentRunner extends BlockJUnit4ClassRunner {
+
+	public AssignmentRunner(Class<?> klass) throws InitializationError {
+		super(klass);
+	}
+	
+	@Override
+    protected void collectInitializationErrors(List<Throwable> errors) {
+        super.collectInitializationErrors(errors);
+        validateNoTestAnnotations(errors);
+	}
+	
+	private void validateNoTestAnnotations(List<Throwable> errors) {
+		if (super.computeTestMethods().size() != 0)
+			errors.add(new Exception(
+					"Do not use the @Test annotation with AssignmentRunner, use @PointValue"));
+	}
+
+	@Override
+	protected List<FrameworkMethod> computeTestMethods() {
+        return getTestClass().getAnnotatedMethods(PointValue.class);
+    }
+	
+	@Override
+	protected List<TestRule> getTestRules(Object target) {
+		List<TestRule> ret = super.getTestRules(target);
+		ret.add(pointWatcher);
+		return ret;
+	}
+
+	TestWatcher pointWatcher = new TestWatcher() {
+		@Override
+		protected void succeeded(Description description) {
+			//all of these should have this annotation
+			PointValue points = description.getAnnotation(PointValue.class);
+			System.out.println(points);
+		}
+
+		@Override
+		protected void failed(Throwable e, Description description) {
+		}
+	};
+}

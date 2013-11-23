@@ -14,7 +14,7 @@ public class MainWindow {
 		
 		window.show();
 		
-		new LoginWindow(window);
+		//new LoginWindow(window);
 		QApplication.exec();
 	}
 }

@@ -3,18 +3,47 @@
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
     <target name="create_run_jar">
+    	<!-- API jar for building tests against -->
+        <jar destfile="mta_api.jar" filesetmanifest="mergewithoutmain">
+        	<!-- just include API code -->
+            <fileset dir="api_bin"/>
+        	
+        	<!-- Extract the required JUnit jars into the API jar -->
+            <zipfileset excludes="META-INF/*.SF" src="lib/hamcrest-core-1.3.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/junit-4.11.jar"/>
+        	
+        	<!-- Extract sources so users can see our Javadoc -->
+            <fileset dir="api"/>
+        	
+        	<!-- Do the same for JUnit jars -->
+            <zipfileset excludes="META-INF/*.SF" src="lib/hamcrest-core-1.3-sources.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/junit-4.11-sources.jar"/>
+    	</jar>
+    	
         <jar destfile="mta.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="mta.Main"/>
                 <attribute name="Class-Path" value="."/>
             </manifest>
-            <fileset dir="bin"/>
+        	<!-- include both API code and app code -->
+        	<fileset dir="bin"/>
+            <fileset dir="api_bin"/>
+        	
+        	<!-- Extract used jars -->
             <zipfileset excludes="META-INF/*.SF" src="lib/qtjambi-4.6.3.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/qtjambi-util-4.6.3.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/jackson-core-2.2.3.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/hamcrest-core-1.3.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/junit-4.11.jar"/>
+
+        	<!-- QT wants platform jars as files, so put them in the jar where we can
+        	     get at them -->
             <zipfileset dir="lib" includes="qtjambi-linux32-gcc-4.6.3.jar"/>
             <zipfileset dir="lib" includes="qtjambi-linux64-gcc-4.6.3.jar"/>
             <zipfileset dir="lib" includes="qtjambi-win32-msvc2005-4.6.3.jar"/>
+        	
+        	<!-- Put the API jar into the main jar where we can get at it -->
+            <zipfileset dir="." includes="mta_api.jar"/>
         </jar>
     </target>
 </project>
