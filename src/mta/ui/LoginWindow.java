@@ -1,16 +1,9 @@
 package mta.ui;
 
-import java.io.IOException;
-
 import mta.pearson.Auth;
 import mta.qt.QFocusLineEdit;
 
-import com.trolltech.qt.QSignalEmitter;
-import com.trolltech.qt.QSignalEmitter.Signal0;
-import com.trolltech.qt.core.Qt.WindowType;
-import com.trolltech.qt.gui.QLineEdit.EchoMode;
 import com.trolltech.qt.gui.*;
-import com.trolltech.qt.gui.QMessageBox.*;
 
 public class LoginWindow {
 	QLineEdit client, domain;
@@ -64,18 +57,14 @@ public class LoginWindow {
 		window.setEnabled(false);
 		window.repaint();
 		QApplication.processEvents();
-		try {
-			if (!Auth.Authenticate(domain.text(), client.text(),
-					username.text(), password.text()))
-				QMessageBox.critical(window, "Login failed",
-						"The credentials you provided could not be used",
-						new StandardButtons(StandardButton.Ok));
-			else {
-				window.accept();
-				return;
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (!Auth.Authenticate(domain.text(), client.text(),
+				username.text(), password.text()))
+			QMessageBox.critical(window, "Login failed",
+					"The credentials you provided could not be used",
+					new QMessageBox.StandardButtons(QMessageBox.StandardButton.Ok));
+		else {
+			window.accept();
+			return;
 		}
 		window.setEnabled(true);
 	}
@@ -83,7 +72,7 @@ public class LoginWindow {
 	@SuppressWarnings("unused")
 	private void clearPwd(boolean f) {
 		if (f) {
-			password.setEchoMode(EchoMode.Password);
+			password.setEchoMode(QLineEdit.EchoMode.Password);
 		}
 	}
 }

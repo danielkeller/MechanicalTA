@@ -10,8 +10,18 @@ import org.junit.runners.model.InitializationError;
 
 public class AssignmentRunner extends BlockJUnit4ClassRunner {
 
+	int totalPoints = 0;
+	int earnedPoints = 0;
+	
 	public AssignmentRunner(Class<?> klass) throws InitializationError {
 		super(klass);
+		
+		List<FrameworkMethod> methods = computeTestMethods();
+		for (FrameworkMethod method : methods) {
+			PointValue points = method.getAnnotation(PointValue.class);
+			if (!points.extraCredit())
+				totalPoints += points.value();
+		}
 	}
 	
 	@Override
@@ -43,7 +53,7 @@ public class AssignmentRunner extends BlockJUnit4ClassRunner {
 		protected void succeeded(Description description) {
 			//all of these should have this annotation
 			PointValue points = description.getAnnotation(PointValue.class);
-			System.out.println(points);
+			earnedPoints += points.value();
 		}
 
 		@Override
