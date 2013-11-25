@@ -2,7 +2,6 @@ package mta.pearson;
 
 import java.io.*;
 import java.net.*;
-import java.util.Iterator;
 import java.util.Scanner;
 
 import javax.net.ssl.*;
@@ -10,6 +9,8 @@ import javax.net.ssl.*;
 import com.fasterxml.jackson.databind.*;
 
 public class Auth {
+	public static String accessToken = null;
+	
 	public static boolean Authenticate(String domain, String client, String user, String pass) {
 		try {
 			URL url = new URL("https://" + domain + "/token");
@@ -30,7 +31,6 @@ public class Auth {
 	        conn.setDoOutput(true);
 	        
 	        OutputStream postStream = conn.getOutputStream();
-	        System.out.println(new String(byteArray));
 	        postStream.write(byteArray, 0, byteArray.length);
 	        postStream.close();
 	        
@@ -44,7 +44,8 @@ public class Auth {
 	        
 	        ObjectMapper mapper = new ObjectMapper();
 	        JsonNode node = mapper.readTree(conn.getInputStream());
-	        System.out.println(node.get("access_token"));
+	        accessToken = node.get("access_token").asText();
+	        System.out.println(accessToken);
 	        return true;
 		} catch (IOException e) {
 			throw new RuntimeException(e);

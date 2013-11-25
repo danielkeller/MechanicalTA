@@ -59,15 +59,17 @@ public class LoginWindow {
 			window.setEnabled(false);
 			window.repaint();
 			QApplication.processEvents();
-			if (!Auth.Authenticate(domain.text(), client.text(),
-					username.text(), password.text()))
-				QMessageBox.critical(window, "Login failed",
-						"The credentials you provided could not be used",
-						new QMessageBox.StandardButtons(QMessageBox.StandardButton.Ok));
-			else {
+			if (Auth.Authenticate(domain.text(), client.text(),
+					username.text(), password.text())) {
+				QMessageBox.information(window, "Login successful",
+						"You were logged in");
 				window.accept();
 				return;
 			}
+			QMessageBox.critical(window, "Login failed",
+					"The credentials you provided could not be used",
+					new QMessageBox.StandardButtons(QMessageBox.StandardButton.Ok));
+
 			window.setEnabled(true);
 		} catch (Throwable e) {
 			Errors.dieGracefully(e);
