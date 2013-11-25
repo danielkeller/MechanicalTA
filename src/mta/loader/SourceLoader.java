@@ -13,7 +13,7 @@ public class SourceLoader {
 	List<String> javafiles = new ArrayList<String>();
 	PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**.java");
 		
-	public void loadFolder(String folder) {
+	public List<Class<?>> loadFolder(String folder) {
 		try {
 			Files.walkFileTree(Paths.get(folder), new SimpleFileVisitor<Path>() {
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
@@ -27,7 +27,7 @@ public class SourceLoader {
 		}
 		
 		if (javafiles.size() == 0)
-			return; //display an error?
+			return new ArrayList<Class<?>>();
 		
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		
@@ -48,9 +48,7 @@ public class SourceLoader {
 				null,
 				fobjects).call();
 		
-		System.out.println("For " + folder);
-		for (Class<?> clazz : loader.getClasses())
-			System.out.println(clazz.getName());
+		return loader.getClasses();
 	}
 
 }

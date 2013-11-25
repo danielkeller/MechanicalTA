@@ -1,9 +1,15 @@
 package mta.ui;
 
+import java.util.List;
+
+import mta.loader.SourceLoader;
+import mta.qt.ClassListModel;
 import mta.test.TestRunner;
 import mta.util.Errors;
 
 import com.trolltech.qt.gui.*;
+import com.trolltech.qt.gui.QListView.Flow;
+import com.trolltech.qt.gui.QListView.ViewMode;
 
 public class MainWindow {
 	QFrame window;
@@ -25,6 +31,8 @@ public class MainWindow {
 		grid.addWidget(testLoad, 0, 0);
 		
 		testClassesView = new QListView(window);
+		testClassesView.setViewMode(ViewMode.ListMode);
+		testClassesView.setFlow(Flow.TopToBottom);
 		grid.addWidget(testClassesView, 1, 0);
 		
 		window.show();
@@ -36,8 +44,10 @@ public class MainWindow {
 	@SuppressWarnings("unused")
 	private void loadTest() {
 		try {
-			TestRunner.runTest(QFileDialog.getExistingDirectory(
-				window, "Choose a test source directory", ""));
+			String testFolder = QFileDialog.getExistingDirectory(
+				window, "Choose a test source directory", "");
+			List<Class<?>> classes = new SourceLoader().loadFolder(testFolder);
+			testClassesView.setModel(new ClassListModel(classes));
 		} catch (Exception e) {
 			Errors.dieGracefully(e);
 		}
