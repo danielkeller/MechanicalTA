@@ -1,4 +1,4 @@
-package mta.util;
+package mta.loader;
 
 import java.io.*;
 import java.net.URI;

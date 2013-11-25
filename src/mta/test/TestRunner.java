@@ -1,11 +1,11 @@
 package mta.test;
 
-import mta.util.SourceLoader;
+import mta.loader.SourceLoader;
 
 
 public class TestRunner {
-	public static void runTest(String testfile) {
-		SourceLoader.loadFile(testfile);
+	public static void runTest(String testfolder) {
+		new SourceLoader().loadFolder(testfolder);
 	}
 		
 }
