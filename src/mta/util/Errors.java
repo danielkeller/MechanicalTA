@@ -20,7 +20,7 @@ public class Errors {
 				+ getBaseException(e).getMessage(),
 				new QMessageBox.StandardButtons(QMessageBox.StandardButton.Ok));
 		e.printStackTrace();
-		//can't exit here, finally blocks are not executed
+		QApplication.exit(-1);
 	}
 	
 	public static void DisplayErrorBox(
