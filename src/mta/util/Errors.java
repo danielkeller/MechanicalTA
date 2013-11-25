@@ -16,7 +16,8 @@ public class Errors {
 	
 	public static void dieGracefully(Throwable e) {
 		QMessageBox.critical(null, "A critical error occured",
-				getBaseException(e).toString(),
+				getBaseException(e).getClass().getName() + "\n"
+				+ getBaseException(e).getMessage(),
 				new QMessageBox.StandardButtons(QMessageBox.StandardButton.Ok));
 		e.printStackTrace();
 		//can't exit here, finally blocks are not executed

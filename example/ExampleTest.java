@@ -1,3 +1,6 @@
+
+import org.junit.Assert;
+
 import org.junit.runner.RunWith;
 
 import mta.api.*;
@@ -5,9 +8,15 @@ import mta.api.*;
 @RunWith(AssignmentRunner.class)
 public class ExampleTest {
 	
+	ExampleInterface test;
+	
+	public ExampleTest(ExampleInterface studentClass) {
+		test = studentClass;
+	}
+	
 	@PointValue(5)
-    public void thisAlwaysPasses() {
-		new Foo();
+    public void testReturn3() {
+		Assert.assertEquals(test.returns3(), 3);
     }
 
 	@PointValue(7)

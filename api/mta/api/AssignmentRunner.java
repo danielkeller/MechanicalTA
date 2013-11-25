@@ -1,27 +1,54 @@
 package mta.api;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
-import org.junit.rules.*;
-import org.junit.runner.Description;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
 public class AssignmentRunner extends BlockJUnit4ClassRunner {
-
-	int totalPoints = 0;
-	int earnedPoints = 0;
+	List<Class<?>> testClasses;
 	
-	public AssignmentRunner(Class<?> klass) throws InitializationError {
+	public AssignmentRunner(Class<?> klass, List<Class<?>> testSet)
+			throws InitializationError {
 		super(klass);
+		testClasses = testSet;
+	}
+	
+	public AssignmentRunner(Class<?> klass)
+			throws InitializationError {
+		super(klass);
+		testClasses = null;
+	}
+	
+	@Override
+	protected Object createTest() throws Exception {
+		Class<?> iface = getTestClass().getOnlyConstructor().getParameterTypes()[0];
+		Class<?> impl = null;
 		
-		List<FrameworkMethod> methods = computeTestMethods();
-		for (FrameworkMethod method : methods) {
-			PointValue points = method.getAnnotation(PointValue.class);
-			if (!points.extraCredit())
-				totalPoints += points.value();
+		for (Class<?> cls : testClasses)
+		{
+			for (Type t : cls.getGenericInterfaces())
+				if (iface.equals(t))
+					impl = cls;
+			if (impl != null)
+				break;
 		}
+		
+		if (impl == null)
+			throw new Exception("No class found implementing " + iface.getName());
+		
+		if (impl.getConstructors().length != 1)
+			throw new Exception("Implementation class " + impl.getName()
+					+ " does not have 1 constructor");
+		
+		if (impl.getConstructors()[0].getParameterTypes().length != 0)
+			throw new Exception("Implementation class " + impl.getName()
+					+ " does not have 0-argument constructor");
+		
+		return getTestClass().getOnlyConstructor().newInstance(
+				impl.getConstructors()[0].newInstance());
 	}
 	
 	@Override
@@ -33,7 +60,23 @@ public class AssignmentRunner extends BlockJUnit4ClassRunner {
 	@Override
 	protected void validateConstructor(List<Throwable> errors) {
         validateOnlyOneConstructor(errors);
-        //should have one constructor taking interface type
+        validateOneArgConstructor(errors);
+	}
+	
+	protected void validateOneArgConstructor(List<Throwable> errors) {
+        Class<?>[] params = getTestClass().getOnlyConstructor().getParameterTypes();
+        
+        if (params.length != 1) {
+	        String gripe = "Test class should have exactly one public one-argument constructor";
+	        errors.add(new Exception(gripe));
+	        return;
+        }
+        
+        if (!params[0].isInterface()) {
+	        String gripe = "Test class should have exactly one public constructor" +
+	        		" taking one interface type";
+	        errors.add(new Exception(gripe));
+        }
 	}
 	
 	private void validateNoTestAnnotations(List<Throwable> errors) {
@@ -46,24 +89,4 @@ public class AssignmentRunner extends BlockJUnit4ClassRunner {
 	protected List<FrameworkMethod> computeTestMethods() {
         return getTestClass().getAnnotatedMethods(PointValue.class);
     }
-	
-	@Override
-	protected List<TestRule> getTestRules(Object target) {
-		List<TestRule> ret = super.getTestRules(target);
-		ret.add(pointWatcher);
-		return ret;
-	}
-
-	TestWatcher pointWatcher = new TestWatcher() {
-		@Override
-		protected void succeeded(Description description) {
-			//all of these should have this annotation
-			PointValue points = description.getAnnotation(PointValue.class);
-			earnedPoints += points.value();
-		}
-
-		@Override
-		protected void failed(Throwable e, Description description) {
-		}
-	};
 }
