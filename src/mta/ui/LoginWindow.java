@@ -2,6 +2,7 @@ package mta.ui;
 
 import mta.pearson.Auth;
 import mta.qt.QFocusLineEdit;
+import mta.util.Errors;
 
 import com.trolltech.qt.gui.*;
 
@@ -54,19 +55,23 @@ public class LoginWindow {
 	
 	@SuppressWarnings("unused")
 	private void login() {
-		window.setEnabled(false);
-		window.repaint();
-		QApplication.processEvents();
-		if (!Auth.Authenticate(domain.text(), client.text(),
-				username.text(), password.text()))
-			QMessageBox.critical(window, "Login failed",
-					"The credentials you provided could not be used",
-					new QMessageBox.StandardButtons(QMessageBox.StandardButton.Ok));
-		else {
-			window.accept();
-			return;
+		try {
+			window.setEnabled(false);
+			window.repaint();
+			QApplication.processEvents();
+			if (!Auth.Authenticate(domain.text(), client.text(),
+					username.text(), password.text()))
+				QMessageBox.critical(window, "Login failed",
+						"The credentials you provided could not be used",
+						new QMessageBox.StandardButtons(QMessageBox.StandardButton.Ok));
+			else {
+				window.accept();
+				return;
+			}
+			window.setEnabled(true);
+		} catch (Throwable e) {
+			Errors.dieGracefully(e);
 		}
-		window.setEnabled(true);
 	}
 
 	@SuppressWarnings("unused")

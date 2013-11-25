@@ -2,11 +2,12 @@ package mta.pearson;
 
 import java.io.*;
 import java.net.*;
+import java.util.Iterator;
 import java.util.Scanner;
 
 import javax.net.ssl.*;
 
-import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.databind.*;
 
 public class Auth {
 	public static boolean Authenticate(String domain, String client, String user, String pass) {
@@ -41,9 +42,8 @@ public class Auth {
 	        	return false;
 	        }
 	        
-	        JsonFactory factory = new JsonFactory();
-	        JsonParser parse = factory.createParser(conn.getInputStream());
-	        TreeNode node = parse.readValueAsTree();
+	        ObjectMapper mapper = new ObjectMapper();
+	        JsonNode node = mapper.readTree(conn.getInputStream());
 	        System.out.println(node.get("access_token"));
 	        return true;
 		} catch (IOException e) {

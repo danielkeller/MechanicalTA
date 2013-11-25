@@ -36,9 +36,11 @@
             <zipfileset excludes="META-INF/*.SF" src="lib/qtjambi-4.6.3.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/qtjambi-util-4.6.3.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/jackson-core-2.2.3.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/jackson-databind-2.2.3.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/jackson-annotations-2.2.3.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/hamcrest-core-1.3.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/junit-4.11.jar"/>
-
+        	
         	<!-- QT wants platform jars as files, so put them in the jar where we can
         	     get at them -->
             <zipfileset dir="lib" includes="qtjambi-linux32-gcc-4.6.3.jar"/>
