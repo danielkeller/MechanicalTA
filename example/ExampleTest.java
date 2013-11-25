@@ -6,6 +6,7 @@ public class ExampleTest {
 	
 	@PointValue(5)
     public void thisAlwaysPasses() {
+		new Foo();
     }
 
 	@PointValue(7)
