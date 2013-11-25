@@ -24,7 +24,6 @@ public class MainWindow {
 		window.setWindowTitle("Mechanical TA");
 		window.setMinimumSize(300, 400);
 		window.resize(300, 400);
-		//window.setSizePolicy(new QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred));
 		
 		QGridLayout grid = new QGridLayout();
 		window.setLayout(grid);

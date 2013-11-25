@@ -30,6 +30,12 @@ public class AssignmentRunner extends BlockJUnit4ClassRunner {
         validateNoTestAnnotations(errors);
 	}
 	
+	@Override
+	protected void validateConstructor(List<Throwable> errors) {
+        validateOnlyOneConstructor(errors);
+        //should have one constructor taking interface type
+	}
+	
 	private void validateNoTestAnnotations(List<Throwable> errors) {
 		if (super.computeTestMethods().size() != 0)
 			errors.add(new Exception(

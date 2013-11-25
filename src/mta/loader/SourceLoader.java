@@ -43,10 +43,13 @@ public class SourceLoader {
 		compiler.getTask(
 				null,
 				fileManager,
-				null, //diagnostics,
+				diagnostics,
 				null,
 				null,
 				fobjects).call();
+		
+		if (diagnostics.getDiagnostics().size() != 0)
+			Errors.DisplayErrorBox(diagnostics.getDiagnostics());
 		
 		return loader.getClasses();
 	}
