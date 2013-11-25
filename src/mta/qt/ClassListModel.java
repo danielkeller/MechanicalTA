@@ -2,7 +2,7 @@ package mta.qt;
 
 import java.util.List;
 
-import org.junit.runner.RunWith;
+import mta.test.TestRunner;
 
 import com.trolltech.qt.QtBlockedSlot;
 import com.trolltech.qt.core.QAbstractListModel;
@@ -24,11 +24,13 @@ public class ClassListModel extends QAbstractListModel {
 		if (role == ItemDataRole.DisplayRole)
 			return classes.get(index.row()).getName();
 		else if (role == ItemDataRole.DecorationRole) {
-			if (classes.get(index.row()).isAnnotationPresent(RunWith.class))
+			if (TestRunner.isTest(classes.get(index.row())))
 				return QIcon.fromTheme("emblem-system");
 			else
 				return QIcon.fromTheme("application-x-executable");
 		}
+		else if (role == ItemDataRole.UserRole)
+			return classes.get(index.row());
 		else
 			return null;
 	}
