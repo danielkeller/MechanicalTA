@@ -5,8 +5,10 @@ import java.util.List;
 import mta.loader.SourceLoader;
 import mta.qt.ClassListModel;
 import mta.test.TestRunner;
+import mta.util.ResourceExtractor;
 import mta.util.Errors;
 
+import com.trolltech.qt.core.QDir;
 import com.trolltech.qt.gui.*;
 import com.trolltech.qt.gui.QAbstractItemView.SelectionMode;
 import com.trolltech.qt.gui.QListView.Flow;
@@ -25,23 +27,38 @@ public class MainWindow {
 		window.setMinimumSize(300, 400);
 		window.resize(300, 400);
 		
-		QGridLayout grid = new QGridLayout();
-		window.setLayout(grid);
+		QGridLayout winGrid = new QGridLayout();
+		window.setLayout(winGrid);
 		
-		QPushButton testLoad2 = new QPushButton("Load test folder", window);
-		testLoad2.clicked.connect(this, "loadTest()");
-		grid.addWidget(testLoad2, 0, 0);
+		QGroupBox testGroup = new QGroupBox("Tests", window);
+		winGrid.addWidget(testGroup, 0, 0);
+		QGridLayout testGrid = new QGridLayout();
+		testGroup.setLayout(testGrid);
+		{
+			QPushButton testLoad = new QPushButton("Load test folder", testGroup);
+			testLoad.clicked.connect(this, "loadTest()");
+			testGrid.addWidget(testLoad, 0, 0);
+			
+			QPushButton apiExtract = new QPushButton("Extract test API", testGroup);
+			apiExtract.clicked.connect(this, "extractAPI()");
+			testGrid.addWidget(apiExtract, 0, 1);
+			
+			testClassesView = new QListView(testGroup);
+			testClassesView.setViewMode(ViewMode.ListMode);
+			testClassesView.setFlow(Flow.TopToBottom);
+			testClassesView.setSelectionMode(SelectionMode.NoSelection);
+			testGrid.addWidget(testClassesView, 1, 0, 1, 2);
+		}
+
+		QGroupBox assignmentGroup = new QGroupBox("Assignment", window);
+		winGrid.addWidget(assignmentGroup, 0, 1);
+		QGridLayout assignmentGrid = new QGridLayout();
+		assignmentGroup.setLayout(assignmentGrid);
 		
-		testClassesView = new QListView(window);
-		testClassesView.setViewMode(ViewMode.ListMode);
-		testClassesView.setFlow(Flow.TopToBottom);
-		testClassesView.setSelectionMode(SelectionMode.NoSelection);
-		grid.addWidget(testClassesView, 1, 0);
-		
-		testRun = new QPushButton("Run the test!", window);
+		testRun = new QPushButton("Grade everything!", window);
 		testRun.clicked.connect(this, "runTest()");
 		testRun.setEnabled(false);
-		grid.addWidget(testRun, 2, 0);
+		winGrid.addWidget(testRun, 2, 0, 1, 2);
 		
 		window.show();
 		
@@ -65,6 +82,17 @@ public class MainWindow {
 			for (Class<?> clazz : classes)
 				if (TestRunner.isTest(clazz))
 						testRun.setEnabled(true);
+		} catch (Exception e) {
+			Errors.dieGracefully(e);
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private void extractAPI() {
+		try {
+			ResourceExtractor.extractAPI(QFileDialog.getSaveFileName(window, "Saving API files",
+					QDir.homePath() + QDir.separator() + "mta_api.jar",
+					new QFileDialog.Filter("API jar (mta_api.jar)")));
 		} catch (Exception e) {
 			Errors.dieGracefully(e);
 		}

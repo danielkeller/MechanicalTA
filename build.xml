@@ -3,11 +3,11 @@
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
     <target name="create_run_jar">
-    	<delete file="mta_api.jar" />
+    	<delete file="lib/mta_api.jar" />
     	<delete file="mta.jar" />
     	
     	<!-- API jar for building tests against -->
-        <jar destfile="mta_api.jar" filesetmanifest="mergewithoutmain">
+        <jar destfile="lib/mta_api.jar" filesetmanifest="mergewithoutmain">
         	<!-- just include API code -->
             <fileset dir="api_bin"/>
         	
@@ -46,7 +46,8 @@
             <zipfileset dir="lib" includes="qtjambi-win32-msvc2005-4.6.3.jar"/>
         	
         	<!-- Put the API jar into the main jar where we can get at it -->
-            <zipfileset dir="." includes="mta_api.jar"/>
+            <zipfileset dir="lib" includes="mta_api.jar"/>
         </jar>
+    	<chmod perm="+x" file="mta.jar"/>
     </target>
 </project>

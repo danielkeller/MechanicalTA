@@ -3,3 +3,4 @@ api_bin/**
 .buildpath
 *.jar
 !lib/*
+lib/mta_api.jar

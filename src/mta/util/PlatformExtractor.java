@@ -10,19 +10,10 @@ public class PlatformExtractor implements AutoCloseable {
 	
 	public PlatformExtractor() throws IOException {
 		tempdir = Files.createTempDirectory("MTA_Jars");
-		
-		byte[] buffer = new byte[4096];
-		int read;
 
 		ArrayList<URL> jarUrls = new ArrayList<URL>();
 		for (String jar : pfJars) {
-			InputStream res = PlatformExtractor.class.getClassLoader().getResourceAsStream(jar);
-			
-			try (OutputStream temp = new FileOutputStream(tempdir.resolve(jar).toString());)
-			{
-				while ((read = res.read(buffer)) != -1)
-			        temp.write(buffer, 0, read);
-			}
+			ResourceExtractor.extractResource(tempdir.resolve(jar), jar);
 			jarUrls.add(tempdir.resolve(jar).toUri().toURL());
 		}
 		//replace the current class loader
