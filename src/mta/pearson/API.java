@@ -8,11 +8,13 @@ import javax.net.ssl.*;
 
 import com.fasterxml.jackson.databind.*;
 
-public class Auth {
+public class API {
 	public static String accessToken = null;
+	public static String reqDomain = null;
 	
 	public static boolean Authenticate(String domain, String client, String user, String pass) {
 		try {
+			reqDomain = domain;
 			URL url = new URL("https://" + domain + "/token");
 			
 	        StringBuilder data = new StringBuilder();
@@ -51,4 +53,37 @@ public class Auth {
 			throw new RuntimeException(e);
 		}
     }
+	
+	public static void getCourses() {
+		
+	}
+	
+	public static JsonNode getRequest(String path) {
+		try {
+			return getRequest(new URL("https://" + reqDomain + "/" + path));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	public static JsonNode getRequest(URL url) {
+		try {
+	        HttpURLConnection conn = (HttpsURLConnection) url.openConnection();
+	        conn.setRequestMethod("GET");
+	        conn.setRequestProperty("X-Authorization", "Access_Token access_token=" + accessToken);
+	        conn.setDoOutput(true);
+	        
+	        if(conn.getResponseCode() >= 300) {
+	        	try (Scanner err = new Scanner(conn.getErrorStream());) {
+		        	err.useDelimiter("\\A");
+		        	System.out.println(err.next());
+	        	}
+	        	return null;
+	        }
+	        
+	        ObjectMapper mapper = new ObjectMapper();
+	        return mapper.readTree(conn.getInputStream());
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
 }

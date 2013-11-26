@@ -1,20 +1,32 @@
 package mta.qt;
 
-import com.trolltech.qt.QSignalEmitter;
-import com.trolltech.qt.QtBlockedSlot;
-import com.trolltech.qt.gui.QFocusEvent;
-import com.trolltech.qt.gui.QLineEdit;
-import com.trolltech.qt.gui.QWidget;
+import java.util.prefs.Preferences;
+
+import com.trolltech.qt.*;
+import com.trolltech.qt.gui.*;
 
 public class QFocusLineEdit extends QLineEdit {
 	boolean isCleared = false;
+	String name;
+	Preferences prefs;
 	
-	public QFocusLineEdit(String labelText, QWidget parent) {
+	public QFocusLineEdit(String labelText, String name, Preferences prefs, QWidget parent) {
 		super(labelText, parent);
 		setStyleSheet("color:grey;");
+		
+		this.name = name;
+		this.prefs = prefs;
+		
+		if (prefs != null) {
+			String stored = prefs.get(name, null);
+			if (stored != null) {
+				setText(stored);
+				doSet();
+			}
+		}
 	}
 	
-	public QSignalEmitter.Signal1<Boolean> cleared = new Signal1<Boolean>();
+	public QSignalEmitter.Signal1<Boolean> set = new QSignalEmitter.Signal1<Boolean>();
 	
 	//TODO: reset help text when box is cleared by user
 	
@@ -22,11 +34,24 @@ public class QFocusLineEdit extends QLineEdit {
 	@QtBlockedSlot
 	protected void focusInEvent(QFocusEvent evt) {
 		super.focusInEvent(evt);
+		if (!isCleared)
+			 setText("");
+		doSet();
+	}
+
+	private void doSet() {
 		if (!isCleared) {
-			setText("");
 			setStyleSheet("");
 			isCleared = true;
-			cleared.emit(true);
+			set.emit(true);
 		}
+	}
+	
+	@Override
+	@QtBlockedSlot
+	protected void focusOutEvent(QFocusEvent evt) {
+		super.focusOutEvent(evt);
+		if (prefs != null)
+			prefs.put(name, text());
 	}
 }

@@ -11,7 +11,7 @@ public class Main {
 		try (PlatformExtractor pe = new PlatformExtractor();) {
 			QApplication.initialize(args);
 			new MainWindow();
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			Errors.dieGracefully(e);
 		}
 	}

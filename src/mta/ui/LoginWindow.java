@@ -1,6 +1,8 @@
 package mta.ui;
 
-import mta.pearson.Auth;
+import java.util.prefs.Preferences;
+
+import mta.pearson.API;
 import mta.qt.QFocusLineEdit;
 import mta.util.Errors;
 
@@ -10,23 +12,28 @@ public class LoginWindow {
 	QLineEdit client, domain;
 	QFocusLineEdit username, password;
 	QDialog window;
+	QWidget mainWnd;
 	boolean userCleared = false, pwCleared = false;
 	
+	Preferences prefs = Preferences.userNodeForPackage(getClass());
+	
 	public LoginWindow(QWidget mainWnd) {
+		this.mainWnd = mainWnd;
+		mainWnd.setEnabled(false);
 		//window stuff
 		window = new QDialog(mainWnd);
 		//window.setFixedSize(300, 200);
-		window.setModal(true); //	does weird things to xmonad
+		//window.setModal(true); //	does weird things to xmonad
 		window.setWindowTitle("Log In");
 		window.rejected.connect(mainWnd, "close()");
 
 		//fields
-		domain = new QLineEdit("api.learningstudio.com", window);
+		domain = new QFocusLineEdit("Enter domain..", "domain", prefs, window);
 		domain.setMinimumWidth(200);
-		client = new QLineEdit("gbtestc", window);
-		username = new QFocusLineEdit("Enter Username...", window);
-		password = new QFocusLineEdit("Enter Password...", window);
-		password.cleared.connect(this, "clearPwd(boolean)");
+		client = new QFocusLineEdit("Enter client string...", "client", prefs, window);
+		username = new QFocusLineEdit("Enter Username...", "user", prefs, window);
+		password = new QFocusLineEdit("Enter Password...", null, null, window);
+		password.set.connect(this, "clearPwd(boolean)");
 		
 		//buttons
 		QPushButton login = new QPushButton("Login", window);
@@ -50,7 +57,7 @@ public class LoginWindow {
 		grid.addWidget(quit, 5, 0, 1, 2);
 		
 		window.setFocus(); //so the text stays
-		window.show();
+		window.exec();
 	}
 	
 	@SuppressWarnings("unused")
@@ -59,10 +66,11 @@ public class LoginWindow {
 			window.setEnabled(false);
 			window.repaint();
 			QApplication.processEvents();
-			if (Auth.Authenticate(domain.text(), client.text(),
+			if (API.Authenticate(domain.text(), client.text(),
 					username.text(), password.text())) {
-				QMessageBox.information(window, "Login successful",
-						"You were logged in");
+				//QMessageBox.information(window, "Login successful",
+				//		"You were logged in");
+				mainWnd.setEnabled(true);
 				window.accept();
 				return;
 			}
@@ -71,6 +79,7 @@ public class LoginWindow {
 					new QMessageBox.StandardButtons(QMessageBox.StandardButton.Ok));
 
 			window.setEnabled(true);
+			password.setFocus();
 		} catch (Throwable e) {
 			Errors.dieGracefully(e);
 		}

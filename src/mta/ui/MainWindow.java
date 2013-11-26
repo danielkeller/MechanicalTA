@@ -10,9 +10,6 @@ import mta.util.Errors;
 
 import com.trolltech.qt.core.QDir;
 import com.trolltech.qt.gui.*;
-import com.trolltech.qt.gui.QAbstractItemView.SelectionMode;
-import com.trolltech.qt.gui.QListView.Flow;
-import com.trolltech.qt.gui.QListView.ViewMode;
 
 public class MainWindow {
 	QFrame window;
@@ -24,8 +21,8 @@ public class MainWindow {
 	public MainWindow() {
 		window = new QFrame();
 		window.setWindowTitle("Mechanical TA");
-		window.setMinimumSize(300, 400);
-		window.resize(300, 400);
+		window.setMinimumSize(400, 400);
+		window.resize(700, 500);
 		
 		QGridLayout winGrid = new QGridLayout();
 		window.setLayout(winGrid);
@@ -44,16 +41,13 @@ public class MainWindow {
 			testGrid.addWidget(apiExtract, 0, 1);
 			
 			testClassesView = new QListView(testGroup);
-			testClassesView.setViewMode(ViewMode.ListMode);
-			testClassesView.setFlow(Flow.TopToBottom);
-			testClassesView.setSelectionMode(SelectionMode.NoSelection);
+			testClassesView.setSelectionMode(QListView.SelectionMode.NoSelection);
 			testGrid.addWidget(testClassesView, 1, 0, 1, 2);
 		}
 
 		QGroupBox assignmentGroup = new QGroupBox("Assignment", window);
 		winGrid.addWidget(assignmentGroup, 0, 1);
-		QGridLayout assignmentGrid = new QGridLayout();
-		assignmentGroup.setLayout(assignmentGrid);
+		CourseView cview = new CourseView(assignmentGroup);
 		
 		testRun = new QPushButton("Grade everything!", window);
 		testRun.clicked.connect(this, "runTest()");
@@ -61,8 +55,9 @@ public class MainWindow {
 		winGrid.addWidget(testRun, 2, 0, 1, 2);
 		
 		window.show();
-		
 		new LoginWindow(window);
+		
+		cview.update();
 		QApplication.exec();
 	}
 
@@ -82,7 +77,7 @@ public class MainWindow {
 			for (Class<?> clazz : classes)
 				if (TestRunner.isTest(clazz))
 						testRun.setEnabled(true);
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			Errors.dieGracefully(e);
 		}
 	}
@@ -93,7 +88,7 @@ public class MainWindow {
 			ResourceExtractor.extractAPI(QFileDialog.getSaveFileName(window, "Saving API files",
 					QDir.homePath() + QDir.separator() + "mta_api.jar",
 					new QFileDialog.Filter("API jar (mta_api.jar)")));
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			Errors.dieGracefully(e);
 		}
 	}
