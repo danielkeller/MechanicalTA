@@ -5,7 +5,8 @@ import java.net.URL;
 import java.util.*;
 
 import mta.pearson.*;
-import mta.qt.KeyValueModel;
+import mta.pearson.Messages.Message;
+import mta.qt.*;
 import mta.util.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -37,6 +38,7 @@ public class CourseView extends QSignalEmitter {
 	}
 	
 	public void update() {
+		courseListView.setModel(LoadingModel.model);
 		courseList.start();
 	}
 	
@@ -85,6 +87,7 @@ public class CourseView extends QSignalEmitter {
 	@SuppressWarnings("unused")
 	private void courseSelected(QItemSelection current, QItemSelection previous) {
 		try {
+			assignmentListView.setModel(LoadingModel.model);
 			selectedCourse = (String)current.indexes().get(0).data(ItemDataRole.UserRole);
 			gradeableList.start();
 		} catch (Throwable e) {
@@ -131,6 +134,7 @@ public class CourseView extends QSignalEmitter {
 	@SuppressWarnings("unused")
 	private void assignmentSelected(QItemSelection current, QItemSelection previous) {
 		try {
+			submissionsListView.setModel(LoadingModel.model);
 			selectedAssignment = (String)current.indexes().get(0).data(ItemDataRole.UserRole);
 			submissionList.start();
 		} catch (Throwable e) {
@@ -138,36 +142,32 @@ public class CourseView extends QSignalEmitter {
 		}
 	}
 	
-	private Future<KeyValueModel<String, String>> submissionList
-		= new Future<KeyValueModel<String, String>>(this, "displaySubmissions()") {
+	private Future<Messages> submissionList
+		= new Future<Messages>(this, "displaySubmissions()") {
 		
-		public KeyValueModel<String, String> evaluate() {
-			List<String> submnStudent = new ArrayList<String>();
-			List<String> submnId = new ArrayList<String>();
+		public Messages evaluate() {
 			try {
 				URL assgnUrl = new URL(selectedAssignment + "/dropboxBasket");
 				URL basketUrl = new URL(API.getRequest(assgnUrl).get("dropboxBasket")
 						.get("links").get(0).get("href").asText() + "/messages");
-				Messages msgs = API.getRequest(basketUrl, Messages.class);
-				JsonNode messages = API.getRequest(basketUrl).get("messages");
-				for (JsonNode message : messages) {
-					JsonNode student = message.get("submissionStudent");
-					submnStudent.add(student.get("lastName").asText() + ", " +
-							student.get("firstName").asText());
-					submnId.add(message.get("id").asText());
-				}
-
+				return API.getRequest(basketUrl, Messages.class);
 			} catch (MalformedURLException e) {
 				throw new RuntimeException(e);
 			}
-			return new KeyValueModel<String, String>(submnStudent, submnId);
 		}
 	};
 	
 	@SuppressWarnings("unused")
 	private void displaySubmissions() {
 		try {
-			submissionsListView.setModel(submissionList.get());
+			List<String> submnStudent = new ArrayList<String>();
+			List<Message> submn = new ArrayList<Message>();
+			for (Message message : submissionList.get().messages) {
+				submnStudent.add(message.submissionStudent.lastName + ", " +
+						message.submissionStudent.firstName);
+				submn.add(message);
+			}
+			submissionsListView.setModel(new KeyValueModel<String, Message>(submnStudent, submn));
 		} catch (Throwable e) {
 			Errors.dieGracefully(e);
 		}
