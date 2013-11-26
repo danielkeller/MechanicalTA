@@ -1,9 +1,12 @@
 package mta.test;
 
+import java.io.InputStream;
 import java.util.List;
 
-import mta.api.AssignmentRunner;
-import mta.api.PointValue;
+import mta.api.*;
+import mta.loader.SourceLoader;
+import mta.pearson.*;
+import mta.pearson.Messages.*;
 import mta.util.Errors;
 
 import org.junit.runner.*;
@@ -12,34 +15,45 @@ import org.junit.runner.notification.RunListener;
 import org.junit.runners.model.InitializationError;
 
 public class TestRunner {
-	public static void runTest(List<Class<?>> classes) {
+	public static boolean isTest(Class<?> clazz) {
+		return clazz.isAnnotationPresent(RunWith.class)
+				&& clazz.getAnnotation(RunWith.class)
+					.value().equals(AssignmentRunner.class);
+	}
+	
+	public static void runTests(List<Class<?>> testSuite, Messages submissions) {
+		for (Message subm : submissions.messages) {
+			for (Attachment att : subm.attachments) {
+				InputStream cont = API.getMessageContent(att.contentUrl);
+				
+				List<Class<?>> classes = new SourceLoader().loadZipStream(cont);
+				
+				PointListener points = runTest(testSuite, classes);
+				System.out.println(att.name + " earned " + points.earnedPoints + " of " + points.totalPoints);
+			}
+		}
+	}
+	
+	private static PointListener runTest(List<Class<?>> testSuite, List<Class<?>> DUT) {
 		JUnitCore core = new JUnitCore();
 		PointListener points = new PointListener();
 		core.addListener(points);
 
-		for (Class<?> clazz : classes)
+		for (Class<?> clazz : testSuite)
 		{
 			if (isTest(clazz))
 			{
 				try {
-					Runner r = new AssignmentRunner(clazz, classes);
+					Runner r = new AssignmentRunner(clazz, DUT);
 					core.run(Request.runner(r));
 				} catch (InitializationError e) {
 					Errors.dieGracefully(new Exception(
 							"For " + clazz.getName() + "\n"
 							+ e.getCauses().get(0).getMessage()));
-					return;
 				}
 			}
 		}
-		
-		System.out.println("Earned " + points.earnedPoints + " of " + points.totalPoints);
-	}
-	
-	public static boolean isTest(Class<?> clazz) {
-		return clazz.isAnnotationPresent(RunWith.class)
-				&& clazz.getAnnotation(RunWith.class)
-					.value().equals(AssignmentRunner.class);
+		return points;
 	}
 	
 	private static class PointListener extends RunListener {

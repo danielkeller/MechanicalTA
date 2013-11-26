@@ -1,11 +1,15 @@
 package mta.ui;
 
+import mta.test.TestRunner;
+import mta.util.Errors;
+
 import com.trolltech.qt.gui.*;
 
 public class MainWindow {
 	QFrame window;
 	QPushButton testRun;
 	CourseView cview;
+	TestView tview;
 	
 	public MainWindow() {
 		window = new QFrame();
@@ -18,15 +22,16 @@ public class MainWindow {
 		
 		QGroupBox testGroup = new QGroupBox("Tests", window);
 		winGrid.addWidget(testGroup, 0, 0);
-		TestView testview = new TestView(window, testGroup);
-		testview.testReady.connect(this, "testReady(boolean)");
+		tview = new TestView(window, testGroup);
+		tview.readyStateChange.connect(this, "testReady()");
 
 		QGroupBox assignmentGroup = new QGroupBox("Assignment", window);
 		winGrid.addWidget(assignmentGroup, 0, 1);
 		cview = new CourseView(assignmentGroup);
+		cview.readyStateChange.connect(this, "testReady()");
 		
 		testRun = new QPushButton("Grade everything!", window);
-		testRun.clicked.connect(testview, "runTest()");
+		testRun.clicked.connect(this, "runTest()");
 		testRun.setEnabled(false);
 		winGrid.addWidget(testRun, 2, 0, 1, 2);
 		
@@ -42,7 +47,16 @@ public class MainWindow {
 	}
 	
 	@SuppressWarnings("unused")
-	private void testReady(boolean ready) {
-		testRun.setEnabled(ready);
+	private void testReady() {
+		testRun.setEnabled(tview.isReady() && cview.isReady());
+	}
+	
+	@SuppressWarnings("unused")
+	private void runTest() {
+		try {
+			TestRunner.runTests(tview.getClasses(), cview.getSubmissions());
+		} catch (Throwable e) {
+			Errors.dieGracefully(e);
+		}
 	}
 }

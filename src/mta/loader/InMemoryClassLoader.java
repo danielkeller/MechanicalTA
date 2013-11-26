@@ -15,7 +15,7 @@ public class InMemoryClassLoader extends ClassLoader {
 	}
 	
 	public JavaFileObject newFileObject(String className) {
-		InMemoryFileObject obj = new InMemoryFileObject(className);
+		InMemoryFileObject obj = new InMemoryFileObject(className, JavaFileObject.Kind.CLASS);
 		objects.put(className, obj);
 		return obj;
 	}

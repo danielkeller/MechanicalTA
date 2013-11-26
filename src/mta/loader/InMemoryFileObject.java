@@ -11,12 +11,14 @@ import javax.tools.JavaFileObject;
 
 public class InMemoryFileObject implements JavaFileObject {
 	
-	private String binaryName;
-	private long lastMod = new Date().getTime();
-	private ByteArrayOutputStream contents = new ByteArrayOutputStream();
+	private final String binaryName;
+	private final Kind kind;
+	private final long lastMod = new Date().getTime();
+	private final ByteArrayOutputStream contents = new ByteArrayOutputStream();
 
-	public InMemoryFileObject(String className) {
+	public InMemoryFileObject(String className, Kind kind) {
 		binaryName = className;
+		this.kind = kind;
 	}
 	
 	public byte[] getBytes() {
@@ -36,7 +38,7 @@ public class InMemoryFileObject implements JavaFileObject {
 	@Override
 	public CharSequence getCharContent(boolean ignoreEncodingErrors)
 			throws IOException {
-		throw new UnsupportedOperationException("This is a binary file");
+		return new String(getBytes());
 	}
 
 	@Override
@@ -80,17 +82,17 @@ public class InMemoryFileObject implements JavaFileObject {
 
 	@Override
 	public Modifier getAccessLevel() {
-		return Modifier.PUBLIC;
+		return null;
 	}
 
 	@Override
 	public Kind getKind() {
-		return Kind.CLASS;
+		return kind;
 	}
 
 	@Override
 	public NestingKind getNestingKind() {
-		return null; //maybe... NestingKind.TOP_LEVEL; //no
+		return null;
 	}
 
 	@Override

@@ -54,8 +54,12 @@ public class API {
 		}
     }
 	
-	public static void getCourses() {
-		
+	public static InputStream getMessageContent(String url) {
+		try {
+	        return doGetRequest(new URL(url));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	public static JsonNode getRequest(String path) {

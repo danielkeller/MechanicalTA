@@ -27,9 +27,8 @@ public class Errors {
 			List<Diagnostic<? extends JavaFileObject>> diags) {
 		QDialog dlg = new QDialog();
 		dlg.setWindowTitle("There are errors in your test");
-		dlg.setMaximumSize(500, 600);
 		dlg.setMinimumSize(300, 200);
-		dlg.resize(4, 4);
+		dlg.resize(500, 600);
 		
 		QGridLayout layout = new QGridLayout(dlg);
 		

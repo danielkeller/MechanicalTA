@@ -10,12 +10,11 @@ import mta.qt.*;
 import mta.util.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.trolltech.qt.*;
-import com.trolltech.qt.core.Qt.ItemDataRole;
+import com.trolltech.qt.core.*;
 import com.trolltech.qt.gui.*;
 
-public class CourseView extends QSignalEmitter {
-	QListView courseListView, assignmentListView, submissionsListView;
+public class CourseView extends QObject {
+	private QListView courseListView, assignmentListView, submissionsListView;
 	
 	//Methods are laid out in approximate chronological order
 	
@@ -31,10 +30,13 @@ public class CourseView extends QSignalEmitter {
 		grid.addWidget(submissionsListView, 0, 1, 2, 1);
 		//this one is informational only
 		submissionsListView.setSelectionMode(QListView.SelectionMode.NoSelection);
-		
-		QPushButton download = new QPushButton("Download", container);
-		download.clicked.connect(this, "download()");
-		grid.addWidget(download, 2, 0, 1, 2);
+	}
+	
+	public Signal0 readyStateChange = new Signal0();
+	public boolean isReady() {return readyState;}
+	
+	public Messages getSubmissions() {
+		return lastSubmissionList;
 	}
 	
 	public void update() {
@@ -87,8 +89,10 @@ public class CourseView extends QSignalEmitter {
 	@SuppressWarnings("unused")
 	private void courseSelected(QItemSelection current, QItemSelection previous) {
 		try {
+			setReadyState(false);
 			assignmentListView.setModel(LoadingModel.model);
-			selectedCourse = (String)current.indexes().get(0).data(ItemDataRole.UserRole);
+			submissionsListView.setModel(NullModel.model);
+			selectedCourse = (String)current.indexes().get(0).data(Qt.ItemDataRole.UserRole);
 			gradeableList.start();
 		} catch (Throwable e) {
 			Errors.dieGracefully(e);
@@ -134,8 +138,9 @@ public class CourseView extends QSignalEmitter {
 	@SuppressWarnings("unused")
 	private void assignmentSelected(QItemSelection current, QItemSelection previous) {
 		try {
+			setReadyState(false);
 			submissionsListView.setModel(LoadingModel.model);
-			selectedAssignment = (String)current.indexes().get(0).data(ItemDataRole.UserRole);
+			selectedAssignment = (String)current.indexes().get(0).data(Qt.ItemDataRole.UserRole);
 			submissionList.start();
 		} catch (Throwable e) {
 			Errors.dieGracefully(e);
@@ -157,24 +162,32 @@ public class CourseView extends QSignalEmitter {
 		}
 	};
 	
+	//must be in a field in case the Future changed after we checked it 
+	private Messages lastSubmissionList;
+	
 	@SuppressWarnings("unused")
 	private void displaySubmissions() {
 		try {
 			List<String> submnStudent = new ArrayList<String>();
 			List<Message> submn = new ArrayList<Message>();
-			for (Message message : submissionList.get().messages) {
+			lastSubmissionList = submissionList.get();
+			
+			for (Message message : lastSubmissionList.messages) {
 				submnStudent.add(message.submissionStudent.lastName + ", " +
 						message.submissionStudent.firstName);
 				submn.add(message);
 			}
 			submissionsListView.setModel(new KeyValueModel<String, Message>(submnStudent, submn));
+			
+			setReadyState(lastSubmissionList.messages.length != 0);
 		} catch (Throwable e) {
 			Errors.dieGracefully(e);
 		}
 	}
-
-	@SuppressWarnings("unused")
-	private void download() {
-		
+	
+	private boolean readyState = false;
+	private void setReadyState(boolean state) {
+		readyState = state;
+		readyStateChange.emit();
 	}
 }

@@ -12,10 +12,9 @@ import com.trolltech.qt.core.*;
 import com.trolltech.qt.gui.*;
 
 public class TestView extends QObject {
-	QListView testClassesView;
-	List<Class<?>> classes = null;
-	String testSrc;
-	QWidget window;
+	private QListView testClassesView;
+	private List<Class<?>> classes = null;
+	private QWidget window;
 
 	public TestView(QWidget window, QWidget container) {
 		this.window = window;
@@ -36,12 +35,17 @@ public class TestView extends QObject {
 		testGrid.addWidget(testClassesView, 2, 0);	
 	}
 	
-	public Signal1<Boolean> testReady = new Signal1<Boolean>();
+	public Signal0 readyStateChange = new Signal0();
+	public boolean isReady() {return readyState;}
+
+	public List<Class<?>> getClasses() {
+		return classes;
+	}
 
 	@SuppressWarnings("unused")
 	private void loadTest() {
 		try {
-			testReady.emit(false);
+			setReadyState(false);
 			
 			String testSrc = QFileDialog.getExistingDirectory(
 				window, "Choose a test source directory", "");
@@ -54,7 +58,7 @@ public class TestView extends QObject {
 	
 			for (Class<?> clazz : classes)
 				if (TestRunner.isTest(clazz)) {
-					testReady.emit(true);
+					setReadyState(true);
 					break;
 				}
 		} catch (Throwable e) {
@@ -73,7 +77,9 @@ public class TestView extends QObject {
 		}
 	}
 	
-	public void runTest() {
-		TestRunner.runTest(classes);
+	private boolean readyState = false;
+	private void setReadyState(boolean state) {
+		readyState = state;
+		readyStateChange.emit();
 	}
 }

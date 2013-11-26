@@ -14,13 +14,17 @@ public class ResourceExtractor {
 		if (res == null)
 			throw new IOException("Resource " + resource + " not found");
 
+		
+		try (OutputStream temp = new FileOutputStream(file.toString());) {
+			dumpStream(res, temp);
+		}
+	}
+	
+	public static void dumpStream(InputStream from, OutputStream to) throws IOException {
 		byte[] buffer = new byte[4096];
 		int read;
 		
-		try (OutputStream temp = new FileOutputStream(file.toString());)
-		{
-			while ((read = res.read(buffer)) != -1)
-		        temp.write(buffer, 0, read);
-		}
+		while ((read = from.read(buffer)) != -1)
+	        to.write(buffer, 0, read);
 	}
 }
