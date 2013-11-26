@@ -2,28 +2,19 @@ package mta.loader;
 
 import java.util.*;
 
-import javax.tools.JavaFileObject;
-
 public class InMemoryClassLoader extends ClassLoader {
-	private Map<String, InMemoryFileObject> objects
-		= new TreeMap<String, InMemoryFileObject>();
-	
 	private List<Class<?>> classes = null;
+	InMemoryFileManager manager;
 	
-	public InMemoryClassLoader(ClassLoader parent) {
+	public InMemoryClassLoader(InMemoryFileManager manager, ClassLoader parent) {
 		super(parent);
-	}
-	
-	public JavaFileObject newFileObject(String className) {
-		InMemoryFileObject obj = new InMemoryFileObject(className, JavaFileObject.Kind.CLASS);
-		objects.put(className, obj);
-		return obj;
+		this.manager = manager;
 	}
 	
 	public List<Class<?>> getClasses() {
 		if (classes == null) {
-			classes = new ArrayList<Class<?>>(objects.size());
-			for (String clazz : objects.keySet())
+			classes = new ArrayList<Class<?>>(manager.getClassMap().size());
+			for (String clazz : manager.getClassMap().keySet())
 				try {
 					classes.add(loadClass(clazz));
 				} catch (ClassNotFoundException e) {}
@@ -36,9 +27,9 @@ public class InMemoryClassLoader extends ClassLoader {
 	
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {
-		if (objects.containsKey(name))
+		if (manager.getClassMap().containsKey(name))
 		{
-			byte[] bytes = objects.get(name).getBytes();
+			byte[] bytes = manager.getClassMap().get(name).getBytes();
 			return defineClass(name, bytes, 0, bytes.length);
 		}
 		throw new ClassNotFoundException();

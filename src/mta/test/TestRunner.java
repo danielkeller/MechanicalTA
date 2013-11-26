@@ -1,10 +1,9 @@
 package mta.test;
 
 import java.io.InputStream;
-import java.util.List;
 
 import mta.api.*;
-import mta.loader.SourceLoader;
+import mta.loader.*;
 import mta.pearson.*;
 import mta.pearson.Messages.*;
 import mta.util.Errors;
@@ -21,12 +20,12 @@ public class TestRunner {
 					.value().equals(AssignmentRunner.class);
 	}
 	
-	public static void runTests(List<Class<?>> testSuite, Messages submissions) {
+	public static void runTests(InMemoryClassLoader testSuite, Messages submissions) {
 		for (Message subm : submissions.messages) {
 			for (Attachment att : subm.attachments) {
 				InputStream cont = API.getMessageContent(att.contentUrl);
 				
-				List<Class<?>> classes = new SourceLoader().loadZipStream(cont);
+				InMemoryClassLoader classes = new SourceLoader().load(testSuite, cont);
 				
 				PointListener points = runTest(testSuite, classes);
 				System.out.println(att.name + " earned " + points.earnedPoints + " of " + points.totalPoints);
@@ -34,17 +33,17 @@ public class TestRunner {
 		}
 	}
 	
-	private static PointListener runTest(List<Class<?>> testSuite, List<Class<?>> DUT) {
+	private static PointListener runTest(InMemoryClassLoader testSuite, InMemoryClassLoader DUT) {
 		JUnitCore core = new JUnitCore();
 		PointListener points = new PointListener();
 		core.addListener(points);
 
-		for (Class<?> clazz : testSuite)
+		for (Class<?> clazz : testSuite.getClasses())
 		{
 			if (isTest(clazz))
 			{
 				try {
-					Runner r = new AssignmentRunner(clazz, DUT);
+					Runner r = new AssignmentRunner(clazz, DUT.getClasses());
 					core.run(Request.runner(r));
 				} catch (InitializationError e) {
 					Errors.dieGracefully(new Exception(

@@ -1,22 +1,21 @@
 package mta.loader;
 
 import java.io.*;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import javax.tools.*;
 
 import mta.util.ResourceExtractor;
 
 class InMemoryFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> {
-	private InMemoryClassLoader loader;
 	private Map<String, InMemoryFileObject> sources
 		= new TreeMap<String, InMemoryFileObject>();
+	private Map<String, InMemoryFileObject> classes
+		= new TreeMap<String, InMemoryFileObject>();
+
 	
-	protected InMemoryFileManager(StandardJavaFileManager fileManager,
-			InMemoryClassLoader l) {
-		super(fileManager);
-		loader = l;
+	protected InMemoryFileManager(JavaCompiler compiler) {
+		super(compiler.getStandardFileManager(null, null, null));
 	}
 	
 	Iterable<? extends JavaFileObject>
@@ -33,8 +32,21 @@ class InMemoryFileManager extends ForwardingJavaFileManager<StandardJavaFileMana
 		sources.put(name, obj);
 	}
 	
-	public Iterable<InMemoryFileObject> getSources () {
+	public Collection<InMemoryFileObject> getSources() {
 		return sources.values();
+	}
+	
+	public Map<String, InMemoryFileObject> getClassMap() {
+		return classes;
+	}
+	
+	public JavaFileObject newFileObject(String name, JavaFileObject.Kind kind) {
+		InMemoryFileObject obj = new InMemoryFileObject(name, kind);
+		if (kind == JavaFileObject.Kind.CLASS)
+			classes.put(name, obj);
+		else
+			sources.put(name, obj);
+		return obj;
 	}
 	
 	@Override
@@ -43,7 +55,7 @@ class InMemoryFileManager extends ForwardingJavaFileManager<StandardJavaFileMana
 			throws IOException {
 		if (location == StandardLocation.CLASS_OUTPUT
 				&& kind == JavaFileObject.Kind.CLASS)
-			return loader.newFileObject(className);
+			return newFileObject(className, kind);
 		else
 			return fileManager.getJavaFileForOutput(location, className, kind, sibling);
 	}

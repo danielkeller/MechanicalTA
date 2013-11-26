@@ -1,8 +1,6 @@
 package mta.ui;
 
-import java.util.List;
-
-import mta.loader.SourceLoader;
+import mta.loader.*;
 import mta.qt.ClassListModel;
 import mta.test.TestRunner;
 import mta.util.Errors;
@@ -13,7 +11,7 @@ import com.trolltech.qt.gui.*;
 
 public class TestView extends QObject {
 	private QListView testClassesView;
-	private List<Class<?>> classes = null;
+	private InMemoryClassLoader classes = null;
 	private QWidget window;
 
 	public TestView(QWidget window, QWidget container) {
@@ -38,7 +36,7 @@ public class TestView extends QObject {
 	public Signal0 readyStateChange = new Signal0();
 	public boolean isReady() {return readyState;}
 
-	public List<Class<?>> getClasses() {
+	public InMemoryClassLoader getClasses() {
 		return classes;
 	}
 
@@ -52,11 +50,11 @@ public class TestView extends QObject {
 			if (testSrc.equals(""))
 				return;
 			
-			classes = new SourceLoader().loadFolder(testSrc);
+			classes = new SourceLoader().load(testSrc);
 			
-			testClassesView.setModel(new ClassListModel(classes));
+			testClassesView.setModel(new ClassListModel(classes.getClasses()));
 	
-			for (Class<?> clazz : classes)
+			for (Class<?> clazz : classes.getClasses())
 				if (TestRunner.isTest(clazz)) {
 					setReadyState(true);
 					break;
