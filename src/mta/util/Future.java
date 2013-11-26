@@ -19,15 +19,15 @@ public abstract class Future<T> extends QObject {
 		final QThread th = new QThread(new Runnable () {
 			@Override
 			public void run() {
-				try {
-					T tmp = evaluate();
-					synchronized (this_) {
+				synchronized (this_) {
+					try {
+						T tmp = evaluate();
 						val = tmp;
+						done.emit();
+					} finally {
+						running = false;
+						this_.moveToThread(orig);
 					}
-					done.emit();
-				} finally {
-					running = false;
-					this_.moveToThread(orig);
 				}
 			}
 		});

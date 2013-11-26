@@ -53,8 +53,10 @@ public class TestView extends QObject {
 			testClassesView.setModel(new ClassListModel(classes));
 	
 			for (Class<?> clazz : classes)
-				if (TestRunner.isTest(clazz))
+				if (TestRunner.isTest(clazz)) {
 					testReady.emit(true);
+					break;
+				}
 		} catch (Throwable e) {
 			Errors.dieGracefully(e);
 		}

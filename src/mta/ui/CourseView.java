@@ -14,7 +14,7 @@ import com.trolltech.qt.core.Qt.ItemDataRole;
 import com.trolltech.qt.gui.*;
 
 public class CourseView extends QSignalEmitter {
-	QListView courseListView, assignmentListView;
+	QListView courseListView, assignmentListView, submissionsListView;
 	
 	//Methods are laid out in approximate chronological order
 	
@@ -24,9 +24,12 @@ public class CourseView extends QSignalEmitter {
 
 		courseListView = new QListView(container);
 		grid.addWidget(courseListView, 0, 0);
-
 		assignmentListView = new QListView(container);
 		grid.addWidget(assignmentListView, 1, 0);
+		submissionsListView = new QListView(container);
+		grid.addWidget(submissionsListView, 0, 1, 2, 1);
+		//this one is informational only
+		submissionsListView.setSelectionMode(QListView.SelectionMode.NoSelection);
 	}
 	
 	public void update() {
@@ -52,7 +55,8 @@ public class CourseView extends QSignalEmitter {
 				
 				JsonNode roleJson = API.getRequest("me/courses/" + courseID + "/role").get("role");
 				
-				if (roleJson.get("type").asText().equals("TAST")) {
+				if (roleJson.get("type").asText().equals("TAST")
+						|| roleJson.get("type").asText().equals("PROF")) {
 					courseNames.add(descrJson.get("title").asText());
 					courseIds.add(courseID);
 				}
@@ -65,7 +69,8 @@ public class CourseView extends QSignalEmitter {
 	private void displayCourses() {
 		try {
 			courseListView.setModel(courseList.get());
-			courseListView.selectionModel().selectionChanged.connect(this, "courseSelected(QItemSelection, QItemSelection)");
+			courseListView.selectionModel().selectionChanged.connect(
+					this, "courseSelected(QItemSelection, QItemSelection)");
 		} catch (Throwable e) {
 			Errors.dieGracefully(e);
 		}
@@ -90,7 +95,8 @@ public class CourseView extends QSignalEmitter {
 			List<String> assignmentNames = new ArrayList<String>();
 			List<String> assignmentLinks = new ArrayList<String>();
 			
-			JsonNode items = API.getRequest("courses/" + selectedCourse + "/gradebookItems").get("gradebookItems");
+			JsonNode items = API.getRequest("courses/" + selectedCourse + "/gradebookItems")
+					.get("gradebookItems");
 			
 			for (JsonNode item : items) {
 				for (JsonNode link : item.get("links"))
@@ -109,7 +115,54 @@ public class CourseView extends QSignalEmitter {
 	private void displayAssignments() {
 		try {
 			assignmentListView.setModel(gradeableList.get());
-			//assignmentListView.selectionModel().selectionChanged.connect(this, "courseSelected(QItemSelection, QItemSelection)");
+			assignmentListView.selectionModel().selectionChanged.connect(
+					this, "assignmentSelected(QItemSelection, QItemSelection)");
+		} catch (Throwable e) {
+			Errors.dieGracefully(e);
+		}
+	}
+	
+	String selectedAssignment;
+	
+	@SuppressWarnings("unused")
+	private void assignmentSelected(QItemSelection current, QItemSelection previous) {
+		try {
+			selectedAssignment = (String)current.indexes().get(0).data(ItemDataRole.UserRole);
+			submissionList.start();
+		} catch (Throwable e) {
+			Errors.dieGracefully(e);
+		}
+	}
+	
+	private Future<KeyValueModel<String, String>> submissionList
+		= new Future<KeyValueModel<String, String>>(this, "displaySubmissions()") {
+		
+		public KeyValueModel<String, String> evaluate() {
+			List<String> submnStudent = new ArrayList<String>();
+			List<String> submnId = new ArrayList<String>();
+			try {
+				URL assgnUrl = new URL(selectedAssignment + "/dropboxBasket");
+				URL basketUrl = new URL(API.getRequest(assgnUrl).get("dropboxBasket")
+						.get("links").get(0).get("href").asText() + "/messages");
+				JsonNode messages = API.getRequest(basketUrl).get("messages");
+				for (JsonNode message : messages) {
+					JsonNode student = message.get("submissionStudent");
+					submnStudent.add(student.get("lastName").asText() + ", " +
+							student.get("firstName").asText());
+					submnId.add(message.get("id").asText());
+				}
+
+			} catch (MalformedURLException e) {
+				throw new RuntimeException(e);
+			}
+			return new KeyValueModel<String, String>(submnStudent, submnId);
+		}
+	};
+	
+	@SuppressWarnings("unused")
+	private void displaySubmissions() {
+		try {
+			submissionsListView.setModel(submissionList.get());
 		} catch (Throwable e) {
 			Errors.dieGracefully(e);
 		}
