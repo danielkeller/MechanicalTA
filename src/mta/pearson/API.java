@@ -65,25 +65,46 @@ public class API {
 			throw new RuntimeException(e);
 		}
 	}
+	
 	public static JsonNode getRequest(URL url) {
 		try {
-	        HttpURLConnection conn = (HttpsURLConnection) url.openConnection();
-	        conn.setRequestMethod("GET");
-	        conn.setRequestProperty("X-Authorization", "Access_Token access_token=" + accessToken);
-	        conn.setDoOutput(true);
-	        
-	        if(conn.getResponseCode() >= 300) {
-	        	try (Scanner err = new Scanner(conn.getErrorStream());) {
-		        	err.useDelimiter("\\A");
-		        	System.out.println(err.next());
-	        	}
-	        	return null;
-	        }
-	        
+			InputStream str = doGetRequest(url);
+			if (str == null)
+				return null;
 	        ObjectMapper mapper = new ObjectMapper();
-	        return mapper.readTree(conn.getInputStream());
+	        return mapper.readTree(str);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+	
+	public static <T> T getRequest(URL url, Class<T> clazz) {
+		try {
+			InputStream str = doGetRequest(url);
+			if (str == null)
+				return null;
+	        ObjectMapper mapper = new ObjectMapper();
+	        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	        mapper.configure(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY, true);
+	        return mapper.readValue(str, clazz);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	private static InputStream doGetRequest(URL url) throws IOException{
+        HttpURLConnection conn = (HttpsURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("X-Authorization", "Access_Token access_token=" + accessToken);
+        conn.setDoOutput(true);
+        
+        if(conn.getResponseCode() >= 300) {
+        	try (Scanner err = new Scanner(conn.getErrorStream());) {
+	        	err.useDelimiter("\\A");
+	        	System.out.println(err.next());
+        	}
+        	return null;
+        }
+        return conn.getInputStream();
 	}
 }

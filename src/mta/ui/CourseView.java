@@ -4,7 +4,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
-import mta.pearson.API;
+import mta.pearson.*;
 import mta.qt.KeyValueModel;
 import mta.util.*;
 
@@ -30,6 +30,10 @@ public class CourseView extends QSignalEmitter {
 		grid.addWidget(submissionsListView, 0, 1, 2, 1);
 		//this one is informational only
 		submissionsListView.setSelectionMode(QListView.SelectionMode.NoSelection);
+		
+		QPushButton download = new QPushButton("Download", container);
+		download.clicked.connect(this, "download()");
+		grid.addWidget(download, 2, 0, 1, 2);
 	}
 	
 	public void update() {
@@ -144,6 +148,7 @@ public class CourseView extends QSignalEmitter {
 				URL assgnUrl = new URL(selectedAssignment + "/dropboxBasket");
 				URL basketUrl = new URL(API.getRequest(assgnUrl).get("dropboxBasket")
 						.get("links").get(0).get("href").asText() + "/messages");
+				Messages msgs = API.getRequest(basketUrl, Messages.class);
 				JsonNode messages = API.getRequest(basketUrl).get("messages");
 				for (JsonNode message : messages) {
 					JsonNode student = message.get("submissionStudent");
@@ -166,5 +171,10 @@ public class CourseView extends QSignalEmitter {
 		} catch (Throwable e) {
 			Errors.dieGracefully(e);
 		}
+	}
+
+	@SuppressWarnings("unused")
+	private void download() {
+		
 	}
 }
