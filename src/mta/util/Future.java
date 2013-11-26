@@ -7,6 +7,9 @@ public abstract class Future<T> extends QObject {
 	public Future(Object recipient, String slot) {
 		done.connect(recipient, slot, Qt.ConnectionType.QueuedConnection);
 	}
+
+	public synchronized T get() {return val;}
+	protected abstract T evaluate();
 	
 	public void start() {
 		if (running)
@@ -31,12 +34,7 @@ public abstract class Future<T> extends QObject {
 		moveToThread(th);
 		th.start();
 	}
-	public synchronized T get() {return val;}
 	
-	protected abstract T evaluate();
-	
-	//Uncommenting the following function triggers a bug in QtJambi, unfortunately
-	//private synchronized void set (T v) {val = v;}
 	private Signal0 done = new Signal0();
 	private T val = null;
 	private Thread orig = thread();

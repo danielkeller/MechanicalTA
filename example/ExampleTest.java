@@ -10,6 +10,7 @@ public class ExampleTest {
 	
 	ExampleInterface test;
 	
+	@ModelImpl(ExampleModel.class)
 	public ExampleTest(ExampleInterface studentClass) {
 		test = studentClass;
 	}

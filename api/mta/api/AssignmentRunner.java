@@ -1,7 +1,6 @@
 package mta.api;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Type;
 import java.util.List;
 
 import org.junit.runners.BlockJUnit4ClassRunner;
@@ -26,23 +25,24 @@ public class AssignmentRunner extends BlockJUnit4ClassRunner {
 	
 	@Override
 	protected Object createTest() throws Exception {
-		
-		//running in junit mode
-		if (testClasses == null) {
-			throw new Exception("Could not find 0-argument constructor");
-		}
-			
 		Constructor<?> ifaceCtor = getTestClass().getOnlyConstructor();
 		Class<?> iface = ifaceCtor.getParameterTypes()[0];
 		Class<?> impl = null;
 		
-		for (Class<?> cls : testClasses)
-		{
-			for (Type t : cls.getGenericInterfaces())
-				if (iface.equals(t))
+		//running in junit mode
+		if (testClasses == null) {
+			if (!ifaceCtor.isAnnotationPresent(ModelImpl.class))
+				throw new Exception("Could not find @ModelImpl annotation on constructor");
+			impl = ifaceCtor.getAnnotation(ModelImpl.class).value();
+		}
+		else {
+			for (Class<?> cls : testClasses)
+			{
+				if (iface.isAssignableFrom(cls) && !cls.isInterface()) {
 					impl = cls;
-			if (impl != null)
-				break;
+					break;
+				}
+			}
 		}
 		
 		if (impl == null)
@@ -56,8 +56,7 @@ public class AssignmentRunner extends BlockJUnit4ClassRunner {
 			throw new Exception("Implementation class " + impl.getName()
 					+ " does not have 0-argument constructor");
 		
-		return getTestClass().getOnlyConstructor().newInstance(
-				impl.getConstructors()[0].newInstance());
+		return ifaceCtor.newInstance(impl.getConstructors()[0].newInstance());
 	}
 	
 	@Override
@@ -103,6 +102,20 @@ public class AssignmentRunner extends BlockJUnit4ClassRunner {
 	        System.out.println(onearg.getParameterTypes()[0].getName());
 	        errors.add(new Exception(gripe));
         }
+        
+        //check model impl if it's there
+		if (onearg.isAnnotationPresent(ModelImpl.class)) {
+			if (!onearg.getParameterTypes()[0]
+					.isAssignableFrom(
+							onearg.getAnnotation(ModelImpl.class).value())) {
+		        String gripe = "If @ModelImpl is present, its value must be a class implementing" +
+		        		" the interface that the constructor takes";
+		        System.out.println(onearg.getParameterTypes()[0].getName());
+		        errors.add(new Exception(gripe));
+				
+			}
+		}
+			
 	}
 	
 	private void validateNoTestAnnotations(List<Throwable> errors) {
