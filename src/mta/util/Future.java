@@ -8,20 +8,38 @@ public abstract class Future<T> extends QObject {
 		done.connect(recipient, slot, Qt.ConnectionType.QueuedConnection);
 	}
 	
-	public void start () {
-		QThread th = new QThread(new Runnable () {
+	public void start() {
+		if (running)
+			return;
+		running = true;
+		
+		final QThread th = new QThread(new Runnable () {
 			@Override
 			public void run() {
-				val = evaluate();
-				done.emit();
+				try {
+					T tmp = evaluate();
+					synchronized (this_) {
+						val = tmp;
+					}
+					done.emit();
+				} finally {
+					running = false;
+					this_.moveToThread(orig);
+				}
 			}
 		});
 		moveToThread(th);
 		th.start();
 	}
-	public T get() {return val;}
+	public synchronized T get() {return val;}
 	
 	protected abstract T evaluate();
+	
+	//Uncommenting the following function triggers a bug in QtJambi, unfortunately
+	//private synchronized void set (T v) {val = v;}
 	private Signal0 done = new Signal0();
-	private T val;
+	private T val = null;
+	private Thread orig = thread();
+	private Future<T> this_ = this;
+	private boolean running = false;
 }

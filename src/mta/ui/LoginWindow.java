@@ -23,7 +23,7 @@ public class LoginWindow {
 		//window stuff
 		window = new QDialog(mainWnd);
 		//window.setFixedSize(300, 200);
-		//window.setModal(true); //	does weird things to xmonad
+		window.setModal(true); //	does weird things to xmonad
 		window.setWindowTitle("Log In");
 		window.rejected.connect(mainWnd, "close()");
 
@@ -40,7 +40,7 @@ public class LoginWindow {
 		//login.clicked.connect(window, "setEnabled(boolean)");
 		login.clicked.connect(this, "login()");
 		QPushButton quit = new QPushButton("Quit", window);
-		quit.clicked.connect(window.rejected);
+		quit.clicked.connect(this, "quit()");
 		
 		//layout
 		QGridLayout grid = new QGridLayout();
@@ -57,7 +57,7 @@ public class LoginWindow {
 		grid.addWidget(quit, 5, 0, 1, 2);
 		
 		window.setFocus(); //so the text stays
-		window.exec();
+		window.show();
 	}
 	
 	@SuppressWarnings("unused")
@@ -90,5 +90,10 @@ public class LoginWindow {
 		if (f) {
 			password.setEchoMode(QLineEdit.EchoMode.Password);
 		}
+	}
+	
+	@SuppressWarnings("unused")
+	private void quit() {
+		QApplication.quit();
 	}
 }

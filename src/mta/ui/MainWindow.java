@@ -17,6 +17,7 @@ public class MainWindow {
 	QPushButton testRun;
 	List<Class<?>> classes = null;
 	String testSrc;
+	CourseView cview;
 	
 	public MainWindow() {
 		window = new QFrame();
@@ -47,7 +48,7 @@ public class MainWindow {
 
 		QGroupBox assignmentGroup = new QGroupBox("Assignment", window);
 		winGrid.addWidget(assignmentGroup, 0, 1);
-		CourseView cview = new CourseView(assignmentGroup);
+		cview = new CourseView(assignmentGroup);
 		
 		testRun = new QPushButton("Grade everything!", window);
 		testRun.clicked.connect(this, "runTest()");
@@ -55,10 +56,14 @@ public class MainWindow {
 		winGrid.addWidget(testRun, 2, 0, 1, 2);
 		
 		window.show();
-		new LoginWindow(window);
-		
-		cview.update();
+		LoginWindow login = new LoginWindow(window);
+		login.window.accepted.connect(this, "loggedin()");
 		QApplication.exec();
+	}
+
+	@SuppressWarnings("unused")
+	private void loggedin() {
+		cview.update();
 	}
 
 	@SuppressWarnings("unused")
