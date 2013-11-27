@@ -20,13 +20,18 @@ public class ExampleTest {
 		Assert.assertTrue(test.isPrime(5));
     }
 	
+	@PointValue(5)
+    public void is899Prime() {
+		Assert.assertFalse(test.isPrime(899));
+    }
+	
 	@PointValue(value=3, extraCredit=true)
 	public void thisOneIsHarder () {
-		Assert.assertTrue(!test.isPrime(2));
+		Assert.assertTrue(!test.isPrime(1));
 	}
 
 	@PointValue(7)
 	public void primesBelow50() {
-		Assert.assertEquals(17, test.primesLessThan(50));
+		Assert.assertEquals(669, test.primesLessThan(5000));
 	}
 }

@@ -2,10 +2,10 @@
 public class ExampleModel implements ExampleInterface {
 	boolean[] isPrimeMemo = new boolean[0];
 	
-	int primesLessThan(int N) {
+	public int primesLessThan(int N) {
         // initially assume all integers are prime
 		if (isPrimeMemo.length < N + 1) {
-	        boolean[] isPrime = new boolean[N + 1];
+			isPrimeMemo = new boolean[N + 1];
 	        for (int i = 2; i <= N; i++) {
 	        	isPrimeMemo[i] = true;
 	        }
@@ -28,9 +28,10 @@ public class ExampleModel implements ExampleInterface {
         for (int i = 2; i <= N; i++) {
             if (isPrimeMemo[i]) primes++;
         }
+        return primes;
 	}
 	
-	boolean isPrime(int n) {
+	public boolean isPrime(int n) {
 		if (isPrimeMemo.length < n)
 			primesLessThan(n);
 		return isPrimeMemo[n];
