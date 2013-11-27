@@ -14,7 +14,7 @@ public class SourceLoader {
 	List<String> javafiles = new ArrayList<String>();
 	PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**.java");
 		
-	public InMemoryClassLoader load(String folder) throws IOException {
+	public InMemoryFileManager load(String folder) throws IOException {
 		Files.walkFileTree(Paths.get(folder), new SimpleFileVisitor<Path>() {
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 				if (matcher.matches(file))
@@ -26,7 +26,6 @@ public class SourceLoader {
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
 		InMemoryFileManager fileManager = new InMemoryFileManager(compiler);
-		InMemoryClassLoader loader = new InMemoryClassLoader(fileManager, Thread.currentThread().getContextClassLoader());
 		
 		Iterable<? extends JavaFileObject> fobjects
 			= fileManager.getJavaFileObjectsFromPaths(javafiles);
@@ -42,15 +41,14 @@ public class SourceLoader {
 		if (diagnostics.getDiagnostics().size() != 0)
 			Errors.DisplayErrorBox(diagnostics.getDiagnostics());
 		
-		return loader;
+		return fileManager;
 	}
 
-	public InMemoryClassLoader load(ClassLoader parentLoader, InputStream in) {
+	public InMemoryFileManager load(InputStream in) {
 		try (ZipInputStream zip = new ZipInputStream(in);) {
 			
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 			InMemoryFileManager fileManager = new InMemoryFileManager(compiler);
-			InMemoryClassLoader loader = new InMemoryClassLoader(fileManager, parentLoader);
 
 			ZipEntry entry;
 			
@@ -72,7 +70,7 @@ public class SourceLoader {
 			//if (diagnostics.getDiagnostics().size() != 0)
 			//	Errors.DisplayErrorBox(diagnostics.getDiagnostics());
 			
-			return loader;
+			return fileManager;
 			
 		} catch (ZipException e) {
 			return null;

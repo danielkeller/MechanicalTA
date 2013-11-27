@@ -11,7 +11,7 @@ import com.trolltech.qt.gui.*;
 
 public class TestView extends QObject {
 	private QListView testClassesView;
-	private InMemoryClassLoader classes = null;
+	private InMemoryFileManager classes = null;
 	private QWidget window;
 
 	public TestView(QWidget window, QWidget container) {
@@ -36,7 +36,7 @@ public class TestView extends QObject {
 	public Signal0 readyStateChange = new Signal0();
 	public boolean isReady() {return readyState;}
 
-	public InMemoryClassLoader getClasses() {
+	public InMemoryFileManager getClasses() {
 		return classes;
 	}
 
@@ -52,9 +52,10 @@ public class TestView extends QObject {
 			
 			classes = new SourceLoader().load(testSrc);
 			
-			testClassesView.setModel(new ClassListModel(classes.getClasses()));
-	
-			for (Class<?> clazz : classes.getClasses())
+			//temporarily load the classes to check them
+			InMemoryClassLoader testClasses = classes.getLoader();
+			testClassesView.setModel(new ClassListModel(testClasses.getClasses()));
+			for (Class<?> clazz : testClasses.getClasses())
 				if (TestRunner.isTest(clazz)) {
 					setReadyState(true);
 					break;

@@ -20,12 +20,16 @@ public class TestRunner {
 					.value().equals(AssignmentRunner.class);
 	}
 	
-	public static void runTests(InMemoryClassLoader testSuite, Messages submissions) {
+	public static void runTests(InMemoryFileManager testSuiteMgr, Messages submissions) {
 		for (Message subm : submissions.messages) {
 			for (Attachment att : subm.attachments) {
 				InputStream cont = API.getMessageContent(att.contentUrl);
 				
-				InMemoryClassLoader classes = new SourceLoader().load(testSuite, cont);
+				InMemoryFileManager classesMgr = new SourceLoader().load(cont);
+				
+				//create class loaders
+				InMemoryClassLoader classes = classesMgr.getLoader();
+				InMemoryClassLoader testSuite = testSuiteMgr.getLoader(classes);
 				
 				PointListener points = runTest(testSuite, classes);
 				System.out.println(att.name + " earned " + points.earnedPoints + " of " + points.totalPoints);

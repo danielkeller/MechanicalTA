@@ -7,7 +7,7 @@ import javax.tools.*;
 
 import mta.util.ResourceExtractor;
 
-class InMemoryFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> {
+public class InMemoryFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> {
 	private Map<String, InMemoryFileObject> sources
 		= new TreeMap<String, InMemoryFileObject>();
 	private Map<String, InMemoryFileObject> classes
@@ -38,6 +38,13 @@ class InMemoryFileManager extends ForwardingJavaFileManager<StandardJavaFileMana
 	
 	public Map<String, InMemoryFileObject> getClassMap() {
 		return classes;
+	}
+	
+	public InMemoryClassLoader getLoader(ClassLoader parent) {
+		return new InMemoryClassLoader(this, parent);
+	}
+	public InMemoryClassLoader getLoader() {
+		return getLoader(Thread.currentThread().getContextClassLoader());
 	}
 	
 	public JavaFileObject newFileObject(String name, JavaFileObject.Kind kind) {

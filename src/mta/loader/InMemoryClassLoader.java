@@ -22,9 +22,6 @@ public class InMemoryClassLoader extends ClassLoader {
 		return classes;
 	}
 	
-	public void loadAll() {
-	}
-	
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {
 		if (manager.getClassMap().containsKey(name))

@@ -17,7 +17,7 @@ public class ExampleTest {
 	
 	@PointValue(5)
     public void testReturn3() {
-		Assert.assertEquals(test.returns3(), 3);
+		Assert.assertEquals(3, test.returns3());
     }
 
 	@PointValue(7)
