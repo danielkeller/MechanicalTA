@@ -27,6 +27,7 @@
             <manifest>
                 <attribute name="Main-Class" value="mta.Main"/>
                 <attribute name="Class-Path" value="."/>
+            	<attribute name="SplashScreen-Image" value="mta.png"/>
             </manifest>
         	<!-- include both API code and app code -->
         	<fileset dir="bin"/>
@@ -49,6 +50,9 @@
         	
         	<!-- Put the API jar into the main jar where we can get at it -->
             <zipfileset dir="lib" includes="mta_api.jar"/>
+        	
+        	<!-- Add splashscreen -->
+        	<zipfileset dir="lib" includes="mta.png"/>
         </jar>
     	<chmod perm="+x" file="mta.jar"/>
     </target>

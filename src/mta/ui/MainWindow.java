@@ -1,5 +1,6 @@
 package mta.ui;
 
+import java.awt.SplashScreen;
 import java.util.Map;
 
 import mta.pearson.API;
@@ -65,6 +66,9 @@ public class MainWindow {
 		
 		LoginWindow login = new LoginWindow(window);
 		login.window.accepted.connect(this, "loggedin()");
+		
+		if (SplashScreen.getSplashScreen() != null)
+			SplashScreen.getSplashScreen().close();
 		
 		QApplication.exec();
 	}
