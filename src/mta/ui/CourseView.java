@@ -5,7 +5,6 @@ import java.net.URL;
 import java.util.*;
 
 import mta.pearson.*;
-import mta.pearson.Messages.Message;
 import mta.qt.*;
 import mta.util.*;
 
@@ -14,7 +13,7 @@ import com.trolltech.qt.core.*;
 import com.trolltech.qt.gui.*;
 
 public class CourseView extends QObject {
-	private QListView courseListView, assignmentListView, submissionsListView;
+	private QListView courseListView, assignmentListView;
 	
 	//Methods are laid out in approximate chronological order
 	
@@ -26,22 +25,16 @@ public class CourseView extends QObject {
 		grid.addWidget(courseListView, 0, 0);
 		assignmentListView = new QListView(container);
 		grid.addWidget(assignmentListView, 1, 0);
-		submissionsListView = new QListView(container);
-		grid.addWidget(submissionsListView, 0, 1, 2, 1);
-		//this one is informational only
-		submissionsListView.setSelectionMode(QListView.SelectionMode.NoSelection);
-	}
-	
-	public Signal0 readyStateChange = new Signal0();
-	public boolean isReady() {return readyState;}
-	
-	public Messages getSubmissions() {
-		return lastSubmissionList;
 	}
 	
 	public void update() {
 		courseListView.setModel(LoadingModel.model);
 		courseList.start();
+	}
+	
+	public Signal0 assignmentSelected = new Signal0();
+	public String getSelectedAssignment() {
+		return selectedAssignment;
 	}
 	
 	private Future<KeyValueModel<String, String>> courseList
@@ -89,9 +82,8 @@ public class CourseView extends QObject {
 	@SuppressWarnings("unused")
 	private void courseSelected(QItemSelection current, QItemSelection previous) {
 		try {
-			setReadyState(false);
+			setAssignment(null);
 			assignmentListView.setModel(LoadingModel.model);
-			submissionsListView.setModel(NullModel.model);
 			selectedCourse = (String)current.indexes().get(0).data(Qt.ItemDataRole.UserRole);
 			gradeableList.start();
 		} catch (Throwable e) {
@@ -133,61 +125,18 @@ public class CourseView extends QObject {
 		}
 	}
 	
-	String selectedAssignment;
-	
 	@SuppressWarnings("unused")
 	private void assignmentSelected(QItemSelection current, QItemSelection previous) {
 		try {
-			setReadyState(false);
-			submissionsListView.setModel(LoadingModel.model);
-			selectedAssignment = (String)current.indexes().get(0).data(Qt.ItemDataRole.UserRole);
-			submissionList.start();
+			setAssignment((String)current.indexes().get(0).data(Qt.ItemDataRole.UserRole));
 		} catch (Throwable e) {
 			Errors.dieGracefully(e);
 		}
 	}
-	
-	private Future<Messages> submissionList
-		= new Future<Messages>(this, "displaySubmissions()") {
-		
-		public Messages evaluate() {
-			try {
-				URL assgnUrl = new URL(selectedAssignment + "/dropboxBasket");
-				URL basketUrl = new URL(API.getRequest(assgnUrl).get("dropboxBasket")
-						.get("links").get(0).get("href").asText() + "/messages");
-				return API.getRequest(basketUrl, Messages.class);
-			} catch (MalformedURLException e) {
-				throw new RuntimeException(e);
-			}
-		}
-	};
-	
-	//must be in a field in case the Future changed after we checked it 
-	private Messages lastSubmissionList;
-	
-	@SuppressWarnings("unused")
-	private void displaySubmissions() {
-		try {
-			List<String> submnStudent = new ArrayList<String>();
-			List<Message> submn = new ArrayList<Message>();
-			lastSubmissionList = submissionList.get();
-			
-			for (Message message : lastSubmissionList.messages) {
-				submnStudent.add(message.submissionStudent.lastName + ", " +
-						message.submissionStudent.firstName);
-				submn.add(message);
-			}
-			submissionsListView.setModel(new KeyValueModel<String, Message>(submnStudent, submn));
-			
-			setReadyState(lastSubmissionList.messages.length != 0);
-		} catch (Throwable e) {
-			Errors.dieGracefully(e);
-		}
-	}
-	
-	private boolean readyState = false;
-	private void setReadyState(boolean state) {
-		readyState = state;
-		readyStateChange.emit();
+
+	private String selectedAssignment;
+	private void setAssignment(String id) {
+		selectedAssignment = id;
+		assignmentSelected.emit();
 	}
 }
