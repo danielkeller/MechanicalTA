@@ -48,7 +48,8 @@ public class SourceLoader {
 		try (ZipInputStream zip = new ZipInputStream(in);) {
 			
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-			InMemoryFileManager fileManager = new InMemoryFileManager(compiler);
+			DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
+			InMemoryFileManager fileManager = new InMemoryFileManager(compiler, diagnostics);
 
 			ZipEntry entry;
 			
@@ -61,14 +62,11 @@ public class SourceLoader {
 			compiler.getTask(
 					null,
 					fileManager,
-					null,
+					diagnostics,
 					null,
 					null,
 					fileManager.getSources())
 					.call();
-			
-			//if (diagnostics.getDiagnostics().size() != 0)
-			//	Errors.DisplayErrorBox(diagnostics.getDiagnostics());
 			
 			return fileManager;
 			

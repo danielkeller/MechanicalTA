@@ -4,7 +4,7 @@ public class ExampleModel implements ExampleInterface {
 	
 	
 	public int returns3() {
-		return 5;
+		return 1;
 	}
 
 }

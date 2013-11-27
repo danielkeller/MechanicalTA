@@ -1,6 +1,10 @@
 package mta.test;
 
 import java.io.InputStream;
+import java.util.*;
+
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaFileObject;
 
 import mta.api.*;
 import mta.loader.*;
@@ -20,24 +24,29 @@ public class TestRunner {
 					.value().equals(AssignmentRunner.class);
 	}
 	
-	public static void runTests(InMemoryFileManager testSuiteMgr, Messages submissions) {
+	public static Map<Message, Score> runTests(InMemoryFileManager testSuiteMgr, Messages submissions) {
+		Map<Message, Score> ret = new TreeMap<Message, Score>(); 
 		for (Message subm : submissions.messages) {
-			for (Attachment att : subm.attachments) {
-				InputStream cont = API.getMessageContent(att.contentUrl);
-				
-				InMemoryFileManager classesMgr = new SourceLoader().load(cont);
-				
-				//create class loaders
-				InMemoryClassLoader classes = classesMgr.getLoader();
-				InMemoryClassLoader testSuite = testSuiteMgr.getLoader(classes);
-				
-				PointListener points = runTest(testSuite, classes);
-				System.out.println(att.name + " earned " + points.earnedPoints + " of " + points.totalPoints);
-			}
+			if (subm.attachments.length < 1)
+				continue;
+			
+			Attachment att = subm.attachments[0];
+			InputStream cont = API.getMessageContent(att.contentUrl);
+			
+			InMemoryFileManager classesMgr = new SourceLoader().load(cont);
+			
+			//create class loaders
+			InMemoryClassLoader classes = classesMgr.getLoader();
+			InMemoryClassLoader testSuite = testSuiteMgr.getLoader(classes);
+			
+			Score result = runTest(testSuite, classes);
+			result.diagnostics = classesMgr.diagnostics;
+			ret.put(subm, result);
 		}
+		return ret;
 	}
 	
-	private static PointListener runTest(InMemoryClassLoader testSuite, InMemoryClassLoader DUT) {
+	private static Score runTest(InMemoryClassLoader testSuite, InMemoryClassLoader DUT) {
 		JUnitCore core = new JUnitCore();
 		PointListener points = new PointListener();
 		core.addListener(points);
@@ -56,12 +65,22 @@ public class TestRunner {
 				}
 			}
 		}
-		return points;
+		return points.getScore();
 	}
 	
+	public static class Score {
+		public int totalPoints = 0;
+		public int earnedPoints = 0;
+		public Result result;
+		public DiagnosticCollector<JavaFileObject> diagnostics;
+	};
+	
 	private static class PointListener extends RunListener {
-		int totalPoints = 0;
-		int earnedPoints = 0;
+		Score score = new Score();
+		
+		public Score getScore() {
+			return score;
+		}
 		
 		//This looks silly, but it has to work this way because there is
 		//no success callback
@@ -70,16 +89,21 @@ public class TestRunner {
 		public void testFinished(Description description) throws Exception {
 			//all of these should have this annotation
 			PointValue points = description.getAnnotation(PointValue.class);
-			earnedPoints += points.value();
+			score.earnedPoints += points.value();
 			if (!points.extraCredit())
-				totalPoints += points.value();
+				score.totalPoints += points.value();
 		}
 		
 		@Override
 		public void testFailure(Failure failure) throws Exception {
 			PointValue points = failure.getDescription().getAnnotation(PointValue.class);
-			earnedPoints -= points.value();
+			score.earnedPoints -= points.value();
 			System.out.println(failure.toString());
+		}
+		
+		@Override
+		public void testRunFinished(Result result) throws Exception {
+			score.result = result;
 		}
 	}
 }

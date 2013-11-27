@@ -12,10 +12,16 @@ public class InMemoryFileManager extends ForwardingJavaFileManager<StandardJavaF
 		= new TreeMap<String, InMemoryFileObject>();
 	private Map<String, InMemoryFileObject> classes
 		= new TreeMap<String, InMemoryFileObject>();
-
 	
+	public DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
+
 	protected InMemoryFileManager(JavaCompiler compiler) {
 		super(compiler.getStandardFileManager(null, null, null));
+	}
+
+	protected InMemoryFileManager(JavaCompiler compiler, DiagnosticCollector<JavaFileObject> diagnostics) {
+		super(compiler.getStandardFileManager(null, null, null));
+		this.diagnostics = diagnostics;
 	}
 	
 	Iterable<? extends JavaFileObject>

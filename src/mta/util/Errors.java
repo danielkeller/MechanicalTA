@@ -28,14 +28,13 @@ public class Errors {
 		QDialog dlg = new QDialog();
 		dlg.setWindowTitle("There are errors in your test");
 		dlg.setMinimumSize(300, 200);
-		dlg.resize(500, 600);
+		dlg.resize(800, 400);
 		
 		QGridLayout layout = new QGridLayout(dlg);
 		
-		QLabel messages = new QLabel(dlg);
-		messages.setFrameShadow(QFrame.Shadow.Sunken);
-		messages.setFrameShape(QFrame.Shape.Panel);
-		//messages.setFontFamily("Courier");
+		QPlainTextEdit messages = new QPlainTextEdit("Error messages...", dlg);
+		messages.setFont(new QFont("Courier"));
+		messages.setReadOnly(true);
 		layout.addWidget(messages, 0, 0, 1, 3);
 		
 		QPushButton ok = new QPushButton("Ok", dlg);
@@ -45,15 +44,9 @@ public class Errors {
 		
 		dlg.setLayout(layout);
 		
-		StringBuilder message = new StringBuilder();
-		for (Diagnostic<? extends JavaFileObject> diag : diags) {
-			
-			message.append("Line " + diag.getLineNumber() + "\n");
-			message.append(diag.getMessage(null));
-			message.append("\n");
-		}
-		
-		messages.setText(message.toString());
+		messages.setPlainText("");
+		for (Diagnostic<? extends JavaFileObject> diag : diags)
+			messages.appendPlainText(diag.toString());
 		
 		dlg.exec();
 	}
