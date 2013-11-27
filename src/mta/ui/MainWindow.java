@@ -49,12 +49,14 @@ public class MainWindow {
 		testRun = new QPushButton("Grade everything!", window);
 		testRun.clicked.connect(this, "runTest()");
 		testRun.setMinimumHeight(testRun.height() * 2); //make it big
+		testRun.setFont(new QFont(null, 14));
 		testRun.setEnabled(false);
 		winGrid.addWidget(testRun, 1, 0, 1, 2);
 
 		sendGrades = new QPushButton("Looks good!", window);
 		sendGrades.clicked.connect(this, "uploadGrades()");
 		sendGrades.setMinimumHeight(testRun.height()); //make it big
+		sendGrades.setFont(new QFont(null, 14));
 		sendGrades.setEnabled(false);
 		winGrid.addWidget(sendGrades, 1, 2);
 		
