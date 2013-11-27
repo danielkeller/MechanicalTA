@@ -18,6 +18,10 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.junit.runners.model.InitializationError;
 
+import com.trolltech.qt.core.Qt;
+import com.trolltech.qt.gui.QApplication;
+import com.trolltech.qt.gui.QProgressDialog;
+
 public class TestRunner {
 	public static boolean isTest(Class<?> clazz) {
 		return clazz.isAnnotationPresent(RunWith.class)
@@ -25,11 +29,24 @@ public class TestRunner {
 					.value().equals(AssignmentRunner.class);
 	}
 	
-	public static Map<Message, Score> runTests(InMemoryFileManager testSuiteMgr, Messages submissions) {
+	public static Map<Message, Score> runTests(InMemoryFileManager testSuiteMgr, Messages submissions,
+			QProgressDialog dlg) {
+		dlg.setWindowModality(Qt.WindowModality.WindowModal);
+		dlg.setMaximum(submissions.messages.length);
+		dlg.setMinimumDuration(0);
+		dlg.setValue(0);
+		QApplication.processEvents();
+		
 		Map<Message, Score> ret = new TreeMap<Message, Score>(); 
+		
 		for (Message subm : submissions.messages) {
+			dlg.setValue(dlg.value() + 1);
+			QApplication.processEvents();
+			
 			if (subm.attachments.length < 1)
 				continue;
+			if (dlg.wasCanceled())
+				break;
 			
 			Attachment att = subm.attachments[0];
 			InputStream cont = API.getMessageContent(att.contentUrl);
@@ -44,6 +61,8 @@ public class TestRunner {
 			result.diagnostics = classesMgr.diagnostics;
 			ret.put(subm, result);
 		}
+		
+		dlg.setValue(submissions.messages.length);
 		return ret;
 	}
 	

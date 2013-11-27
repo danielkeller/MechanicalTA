@@ -101,7 +101,9 @@ public class MainWindow {
 			resultGroup.setEnabled(false);
 			window.repaint();
 			QApplication.processEvents();
-			result = TestRunner.runTests(tview.getClasses(), rview.getSubmissions());
+			
+			result = TestRunner.runTests(tview.getClasses(), rview.getSubmissions(),
+					new QProgressDialog("Running tests", "Cancel", 0, 0, window));
 			rview.setResult(result);
 			
 			resultGroup.setEnabled(true);
