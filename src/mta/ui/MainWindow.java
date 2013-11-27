@@ -1,13 +1,19 @@
 package mta.ui;
 
+import java.util.Map;
+
+import mta.pearson.API;
+import mta.pearson.Grade;
+import mta.pearson.Messages.Message;
 import mta.test.TestRunner;
+import mta.test.TestRunner.Score;
 import mta.util.Errors;
 
 import com.trolltech.qt.gui.*;
 
 public class MainWindow {
 	QFrame window;
-	QPushButton testRun;
+	QPushButton testRun, sendGrades;
 	QGroupBox testGroup, assignmentGroup, resultGroup;
 	CourseView cview;
 	TestView tview;
@@ -38,12 +44,19 @@ public class MainWindow {
 		winGrid.addWidget(resultGroup, 0, 2);
 		rview = new ResultsView(resultGroup);
 		rview.readyStateChange.connect(this, "testReady()");
+		resultGroup.setEnabled(false);
 		
 		testRun = new QPushButton("Grade everything!", window);
 		testRun.clicked.connect(this, "runTest()");
 		testRun.setMinimumHeight(testRun.height() * 2); //make it big
 		testRun.setEnabled(false);
-		winGrid.addWidget(testRun, 2, 0, 1, 2);
+		winGrid.addWidget(testRun, 1, 0, 1, 2);
+
+		sendGrades = new QPushButton("Looks good!", window);
+		sendGrades.clicked.connect(this, "uploadGrades()");
+		sendGrades.setMinimumHeight(testRun.height()); //make it big
+		sendGrades.setEnabled(false);
+		winGrid.addWidget(sendGrades, 1, 2);
 		
 		window.show();
 		window.move(QApplication.desktop().screen().rect().center().subtract(window.rect().bottomRight().divide(2)));
@@ -56,18 +69,28 @@ public class MainWindow {
 
 	@SuppressWarnings("unused")
 	private void loggedin() {
-		cview.update();
+		try {
+			cview.update();
+		} catch (Throwable e) {
+			Errors.dieGracefully(e);
+		}
 	}
 	
 	@SuppressWarnings("unused")
 	private void setSubmissions() {
-		rview.setAssignment(cview.getSelectedAssignment());
+		try {
+			rview.setAssignment(cview.getSelectedAssignment());
+		} catch (Throwable e) {
+			Errors.dieGracefully(e);
+		}
 	}
 	
 	@SuppressWarnings("unused")
 	private void testReady() {
 		testRun.setEnabled(tview.isReady() && rview.isReady());
 	}
+	
+	Map<Message, Score> result;
 	
 	@SuppressWarnings("unused")
 	private void runTest() {
@@ -78,9 +101,38 @@ public class MainWindow {
 			resultGroup.setEnabled(false);
 			window.repaint();
 			QApplication.processEvents();
-			rview.setResult(TestRunner.runTests(tview.getClasses(), rview.getSubmissions()));
+			result = TestRunner.runTests(tview.getClasses(), rview.getSubmissions());
+			rview.setResult(result);
 			
 			resultGroup.setEnabled(true);
+			sendGrades.setEnabled(true);
+		} catch (Throwable e) {
+			Errors.dieGracefully(e);
+		}
+	}
+	
+	@SuppressWarnings("unused")
+	private void uploadGrades() {
+		try {
+			int answer = QMessageBox.question(window, "Confirm", "Are you sure you want to upload grades?",
+					QMessageBox.StandardButton.Yes, QMessageBox.StandardButton.No);
+			if (answer == QMessageBox.StandardButton.No.value())
+				return;
+			
+			for (Message res : result.keySet()) {
+				Grade.GradeWr grade = new Grade.GradeWr();
+				Score score = result.get(res);
+				grade.grade.points = "" + score.earnedPoints;
+				grade.grade.comments = score.toString().replace("\n", "<br/>");
+				
+				String gradeLoc = "users/" + res.submissionStudent.id +
+						"/courses/" + cview.getSelectedCourse() +
+						"/gradebookItems/" + cview.getSelectedAssignment().gradebookID +
+						"/grade";
+				API.deleteRequest(gradeLoc); //delete grade if it's there
+				String gradeURL = API.postRequest(gradeLoc, grade); //post the new grade
+			}
+			
 		} catch (Throwable e) {
 			Errors.dieGracefully(e);
 		}

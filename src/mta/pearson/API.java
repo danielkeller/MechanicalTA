@@ -32,9 +32,9 @@ public class API {
 	        conn.setRequestProperty("Content-Length", "" + byteArray.length);
 	        conn.setDoOutput(true);
 	        
-	        OutputStream postStream = conn.getOutputStream();
-	        postStream.write(byteArray, 0, byteArray.length);
-	        postStream.close();
+	        try (OutputStream postStream = conn.getOutputStream();) {
+	        	postStream.write(byteArray, 0, byteArray.length);
+	        }
 	        
 	        if(conn.getResponseCode() >= 300) {
 	        	try (Scanner err = new Scanner(conn.getErrorStream());) {
@@ -56,7 +56,7 @@ public class API {
 	
 	public static InputStream getMessageContent(String url) {
 		try {
-	        return doGetRequest(new URL(url));
+	        return doSimpleRequest(new URL(url), "GET");
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -70,9 +70,17 @@ public class API {
 		}
 	}
 	
+	public static void deleteRequest(String path) {
+		try {
+			deleteRequest(new URL("https://" + reqDomain + "/" + path));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 	public static JsonNode getRequest(URL url) {
 		try {
-			InputStream str = doGetRequest(url);
+			InputStream str = doSimpleRequest(url, "GET");
 			if (str == null)
 				return null;
 	        ObjectMapper mapper = new ObjectMapper();
@@ -82,9 +90,25 @@ public class API {
 		}
 	}
 	
+	public static void deleteRequest(URL url) {
+		try {
+			doSimpleRequest(url, "DELETE");
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static <T> T getRequest(String path, Class<T> clazz) {
+		try {
+			return getRequest(new URL("https://" + reqDomain + "/" + path), clazz);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 	public static <T> T getRequest(URL url, Class<T> clazz) {
 		try {
-			InputStream str = doGetRequest(url);
+			InputStream str = doSimpleRequest(url, "GET");
 			if (str == null)
 				return null;
 	        ObjectMapper mapper = new ObjectMapper();
@@ -96,14 +120,41 @@ public class API {
 		}
 	}
 	
-	private static InputStream doGetRequest(URL url) throws IOException{
+	public static String postRequest(String path, Object content) throws IOException {
+        HttpURLConnection conn = (HttpsURLConnection) new URL("https://" + reqDomain + "/" + path).openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("X-Authorization", "Access_Token access_token=" + accessToken);
+        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+
+        byte[] payload = new ObjectMapper().writeValueAsBytes(content);
+        
+        conn.setRequestProperty("Content-Length", "" + payload.length);
+
+        conn.setDoOutput(true);
+        try (OutputStream postStream = conn.getOutputStream();) {
+        	postStream.write(payload);
+        }
+        
+        if(conn.getResponseCode() >= 300) {
+        	try (Scanner err = new Scanner(conn.getErrorStream());) {
+	        	err.useDelimiter("\\A");
+	        	System.out.println(conn.getResponseCode() + " " + conn.getResponseMessage());
+	        	System.out.println(err.next());
+        	}
+        }
+        
+        return conn.getHeaderField("Location");
+	}
+	
+	private static InputStream doSimpleRequest(URL url, String method) throws IOException{
         HttpURLConnection conn = (HttpsURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
+        conn.setRequestMethod(method);
         conn.setRequestProperty("X-Authorization", "Access_Token access_token=" + accessToken);
         conn.setDoOutput(true);
         
         if(conn.getResponseCode() >= 300) {
         	try (Scanner err = new Scanner(conn.getErrorStream());) {
+	        	System.out.println(conn.getResponseCode() + " " + conn.getResponseMessage());
 	        	err.useDelimiter("\\A");
 	        	System.out.println(err.next());
         	}

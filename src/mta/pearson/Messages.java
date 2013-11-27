@@ -5,19 +5,13 @@ public class Messages {
 	
 	public static class Message implements Comparable<Message> {
 		public String id;
-		public SubmissionStudent submissionStudent;
+		public Student submissionStudent;
 		public Attachment[] attachments;
 		
 		@Override
 		public int compareTo(Message o) {
 			return id.compareTo(o.id);
 		}
-	}
-	
-	public static class SubmissionStudent {
-		public String id;
-		public String firstName;
-		public String lastName;
 	}
 	
 	public static class Attachment {

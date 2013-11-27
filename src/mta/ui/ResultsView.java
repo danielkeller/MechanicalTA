@@ -18,6 +18,7 @@ import mta.qt.KeyValueModel;
 import mta.qt.LoadingModel;
 import mta.qt.NullModel;
 import mta.test.TestRunner.Score;
+import mta.ui.CourseView.GradebookLink;
 import mta.util.Errors;
 import mta.util.Future;
 
@@ -64,10 +65,10 @@ public class ResultsView extends QObject {
 		return lastSubmissionList;
 	}
 	
-	public void setAssignment(String selectedAssignment) {
+	public void setAssignment(GradebookLink gradebookLink) {
 		setReadyState(false);
-		this.selectedAssignment = selectedAssignment;
-		if (selectedAssignment != null) {
+		this.selectedAssignment = gradebookLink;
+		if (gradebookLink != null) {
 			submissionsListView.setModel(LoadingModel.model);
 			submissionList.start();
 		}
@@ -80,14 +81,14 @@ public class ResultsView extends QObject {
 		submissionsListView.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection);
 	}
 	
-	private String selectedAssignment;
+	private GradebookLink selectedAssignment;
 	
 	private Future<Messages> submissionList
 		= new Future<Messages>(this, "displaySubmissions()") {
 		
 		public Messages evaluate() {
 			try {
-				URL assgnUrl = new URL(selectedAssignment + "/dropboxBasket");
+				URL assgnUrl = new URL(selectedAssignment.assignmentLink + "/dropboxBasket");
 				URL basketUrl = new URL(API.getRequest(assgnUrl).get("dropboxBasket")
 						.get("links").get(0).get("href").asText() + "/messages");
 				return API.getRequest(basketUrl, Messages.class);

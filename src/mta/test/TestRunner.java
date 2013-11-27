@@ -3,6 +3,7 @@ package mta.test;
 import java.io.InputStream;
 import java.util.*;
 
+import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
 
@@ -73,6 +74,25 @@ public class TestRunner {
 		public int earnedPoints = 0;
 		public Result result;
 		public DiagnosticCollector<JavaFileObject> diagnostics;
+		
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Score: " + earnedPoints + "/" + totalPoints + "\n\n");
+			
+			for (Diagnostic<? extends JavaFileObject> diag : diagnostics.getDiagnostics()) {
+				sb.append(diag.toString());
+				sb.append("\n");
+			}
+			
+			sb.append("\n");
+			
+			for (Failure fail : result.getFailures()) {
+				sb.append(fail.toString());
+				sb.append("\n");
+			}
+			return sb.toString();
+		}
 	};
 	
 	private static class PointListener extends RunListener {

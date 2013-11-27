@@ -33,8 +33,11 @@ public class CourseView extends QObject {
 	}
 	
 	public Signal0 assignmentSelected = new Signal0();
-	public String getSelectedAssignment() {
+	public GradebookLink getSelectedAssignment() {
 		return selectedAssignment;
+	}
+	public String getSelectedCourse() {
+		return selectedCourse;
 	}
 	
 	private Future<KeyValueModel<String, String>> courseList
@@ -91,12 +94,22 @@ public class CourseView extends QObject {
 		}
 	}
 	
-	private Future<KeyValueModel<String, String>> gradeableList
-		= new Future<KeyValueModel<String, String>>(this, "displayAssignments()") {
+	public class GradebookLink {
+		public GradebookLink(String assignmentLink, String gradebookID) {
+			this.assignmentLink = assignmentLink;
+			this.gradebookID = gradebookID;
+		}
 		
-		public KeyValueModel<String, String> evaluate() {
+		public final String assignmentLink;
+		public final String gradebookID;
+	}
+	
+	private Future<KeyValueModel<String, GradebookLink>> gradeableList
+		= new Future<KeyValueModel<String, GradebookLink>>(this, "displayAssignments()") {
+		
+		public KeyValueModel<String, GradebookLink> evaluate() {
 			List<String> assignmentNames = new ArrayList<String>();
-			List<String> assignmentLinks = new ArrayList<String>();
+			List<GradebookLink> assignmentLinks = new ArrayList<GradebookLink>();
 			
 			JsonNode items = API.getRequest("courses/" + selectedCourse + "/gradebookItems")
 					.get("gradebookItems");
@@ -106,11 +119,13 @@ public class CourseView extends QObject {
 					if (link.get("rel").asText().contains("dropboxbasket")) {
 						assignmentNames.add(item.get("title").asText());
 						for (JsonNode link2 : item.get("links"))
-							if (link2.get("rel").asText().equals("related"))
-								assignmentLinks.add(link2.get("href").asText());
+							if (link2.get("rel").asText().equals("related")) {
+								assignmentLinks.add(new GradebookLink(link2.get("href").asText(), item.get("id").asText()));
+								break;
+							}
 					}
 			}
-			return new KeyValueModel<String, String>(assignmentNames, assignmentLinks);
+			return new KeyValueModel<String, GradebookLink>(assignmentNames, assignmentLinks);
 		}
 	};
 	
@@ -128,14 +143,14 @@ public class CourseView extends QObject {
 	@SuppressWarnings("unused")
 	private void assignmentSelected(QItemSelection current, QItemSelection previous) {
 		try {
-			setAssignment((String)current.indexes().get(0).data(Qt.ItemDataRole.UserRole));
+			setAssignment((GradebookLink)current.indexes().get(0).data(Qt.ItemDataRole.UserRole));
 		} catch (Throwable e) {
 			Errors.dieGracefully(e);
 		}
 	}
 
-	private String selectedAssignment;
-	private void setAssignment(String id) {
+	private GradebookLink selectedAssignment;
+	private void setAssignment(GradebookLink id) {
 		selectedAssignment = id;
 		assignmentSelected.emit();
 	}
