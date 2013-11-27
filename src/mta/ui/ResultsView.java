@@ -9,6 +9,8 @@ import java.util.Map;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
+import org.junit.runner.notification.Failure;
+
 import mta.pearson.API;
 import mta.pearson.Messages;
 import mta.pearson.Messages.*;
@@ -26,6 +28,7 @@ public class ResultsView extends QObject {
 	private QListView submissionsListView;
 	private QLabel scoreLabel;
 	private QPlainTextEdit diags;
+	private QListView failures;
 	
 	public ResultsView(QWidget container) {
 		QGridLayout grid = new QGridLayout();
@@ -48,6 +51,10 @@ public class ResultsView extends QObject {
 		diags.setFont(new QFont("Courier"));
 		diags.setReadOnly(true);
 		resGrid.addWidget(diags, 1, 0);
+		
+		failures = new QListView(resFrame);
+		failures.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection);
+		resGrid.addWidget(failures, 2, 0);
 	}
 
 	public Signal0 readyStateChange = new Signal0();
@@ -128,6 +135,11 @@ public class ResultsView extends QObject {
 		diags.setPlainText("");
 		for (Diagnostic<? extends JavaFileObject> diag : score.diagnostics.getDiagnostics())
 			diags.appendPlainText(diag.toString());
+		
+		List<String> fails = new ArrayList<String>(score.result.getFailures().size()); 
+		for (Failure fail : score.result.getFailures())
+			fails.add(fail.toString());
+		failures.setModel(new QStringListModel(fails));
 	}
 	
 	private boolean readyState = false;
