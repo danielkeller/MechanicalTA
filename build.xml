@@ -47,6 +47,7 @@
             <zipfileset dir="lib" includes="qtjambi-linux32-gcc-4.6.3.jar"/>
             <zipfileset dir="lib" includes="qtjambi-linux64-gcc-4.6.3.jar"/>
             <zipfileset dir="lib" includes="qtjambi-win32-msvc2005-4.6.3.jar"/>
+            <zipfileset dir="lib" includes="qtjambi-macosx-gcc-4.6.3.jar"/>
         	
         	<!-- Put the API jar into the main jar where we can get at it -->
             <zipfileset dir="lib" includes="mta_api.jar"/>

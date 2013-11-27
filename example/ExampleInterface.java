@@ -1,4 +1,6 @@
 
 public interface ExampleInterface {
-	int returns3();
+	int primesLessThan(int N);
+	
+	boolean isPrime(int n);
 }

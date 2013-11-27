@@ -16,16 +16,17 @@ public class ExampleTest {
 	}
 	
 	@PointValue(5)
-    public void testReturn3() {
-		Assert.assertEquals(3, test.returns3());
+    public void is5Prime() {
+		Assert.assertTrue(test.isPrime(5));
     }
-
-	@PointValue(7)
-	public void thisFails() {
-		throw new RuntimeException("I am bad at programming, and not good at all");
-	}
 	
 	@PointValue(value=3, extraCredit=true)
-	public void thisIsExtraCredit () {
+	public void thisOneIsHarder () {
+		Assert.assertTrue(!test.isPrime(2));
+	}
+
+	@PointValue(7)
+	public void primesBelow50() {
+		Assert.assertEquals(17, test.primesLessThan(50));
 	}
 }
