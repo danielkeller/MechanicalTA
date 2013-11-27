@@ -109,7 +109,7 @@ public class MainWindow {
 			QApplication.processEvents();
 			
 			result = TestRunner.runTests(tview.getClasses(), rview.getSubmissions(),
-					new QProgressDialog("Running tests", "Cancel", 0, 0, window));
+					new QProgressDialog("Running tests...", "Cancel", 0, 0, window));
 			rview.setResult(result);
 			
 			resultGroup.setEnabled(true);
@@ -127,7 +127,16 @@ public class MainWindow {
 			if (answer == QMessageBox.StandardButton.No.value())
 				return;
 			
+			QProgressDialog dlg = new QProgressDialog("Uploading results...", "Cancel", 0, 0, window);
+			dlg.setMaximum(result.keySet().size() * 2);
+			dlg.setMinimumDuration(0);
+			dlg.setValue(0);
+			QApplication.processEvents();
+			
 			for (Message res : result.keySet()) {
+				if (dlg.wasCanceled())
+					break;
+				
 				Grade.GradeWr grade = new Grade.GradeWr();
 				Score score = result.get(res);
 				grade.grade.points = "" + score.earnedPoints;
@@ -138,7 +147,12 @@ public class MainWindow {
 						"/gradebookItems/" + cview.getSelectedAssignment().gradebookID +
 						"/grade";
 				API.deleteRequest(gradeLoc); //delete grade if it's there
+				dlg.setValue(dlg.value() + 1);
+				QApplication.processEvents();
+				
 				String gradeURL = API.postRequest(gradeLoc, grade); //post the new grade
+				dlg.setValue(dlg.value() + 1);
+				QApplication.processEvents();
 			}
 			
 		} catch (Throwable e) {
