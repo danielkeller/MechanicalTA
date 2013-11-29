@@ -128,16 +128,16 @@ public class MainWindow {
 				return;
 			
 			QProgressDialog dlg = new QProgressDialog("Uploading results...", "Cancel", 0, 0, window);
-			dlg.setMaximum(result.keySet().size() * 2);
+			dlg.setMaximum(result.keySet().size() * 4);
 			dlg.setMinimumDuration(0);
 			dlg.setValue(0);
 			QApplication.processEvents();
 			
-			for (Message res : result.keySet()) {
+			for (final Message res : result.keySet()) {
 				if (dlg.wasCanceled())
 					break;
 				
-				Grade.GradeWr grade = new Grade.GradeWr();
+				final Grade.GradeWr grade = new Grade.GradeWr();
 				Score score = result.get(res);
 				grade.grade.points = "" + score.earnedPoints;
 				grade.grade.comments = score.toString().replace("\n", "<br/>");
@@ -150,7 +150,25 @@ public class MainWindow {
 				dlg.setValue(dlg.value() + 1);
 				QApplication.processEvents();
 				
-				String gradeURL = API.postRequest(gradeLoc, grade); //post the new grade
+				String gradeURL = API.otherRequest("POST", gradeLoc, grade); //post the new grade
+				dlg.setValue(dlg.value() + 1);
+				QApplication.processEvents();
+				
+				final String meId = API.getRequest("me").get("me").get("id").asText();
+				dlg.setValue(dlg.value() + 1);
+				QApplication.processEvents();
+				
+				API.otherRequest("POST", rview.getBasketURL(), new Object() {
+					public Object Message = new Object() {
+						public String Comments = grade.grade.comments;
+						public Object SubmissionStudent = new Object() {
+							public String ID = res.submissionStudent.id; 
+						};
+						public Object Author = new Object() {
+							public String ID = meId; 
+						};
+					};
+				});
 				dlg.setValue(dlg.value() + 1);
 				QApplication.processEvents();
 			}

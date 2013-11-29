@@ -64,13 +64,18 @@ public class ResultsView extends QObject {
 	public Messages getSubmissions() {
 		return lastSubmissionList;
 	}
+
+	
+	public URL getBasketURL() {
+		return basketUrl.get();
+	}
 	
 	public void setAssignment(GradebookLink gradebookLink) {
 		setReadyState(false);
 		this.selectedAssignment = gradebookLink;
 		if (gradebookLink != null) {
 			submissionsListView.setModel(LoadingModel.model);
-			submissionList.start();
+			basketUrl.start();
 		}
 		else
 			submissionsListView.setModel(NullModel.model);
@@ -85,17 +90,21 @@ public class ResultsView extends QObject {
 	
 	private Future<Messages> submissionList
 		= new Future<Messages>(this, "displaySubmissions()") {
-		
 		public Messages evaluate() {
+			return API.getRequest(basketUrl.get(), Messages.class);
+		}
+	};
+	
+	private Future<URL> basketUrl = new Future<URL>(submissionList, "start()") {
+		public URL evaluate() {
 			try {
 				URL assgnUrl = new URL(selectedAssignment.assignmentLink + "/dropboxBasket");
-				URL basketUrl = new URL(API.getRequest(assgnUrl).get("dropboxBasket")
+				return new URL(API.getRequest(assgnUrl).get("dropboxBasket")
 						.get("links").get(0).get("href").asText() + "/messages");
-				return API.getRequest(basketUrl, Messages.class);
 			} catch (MalformedURLException e) {
 				throw new RuntimeException(e);
 			}
-		}
+		}		
 	};
 	
 	//must be in a field in case the Future changed after we checked it 

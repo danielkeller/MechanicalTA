@@ -120,9 +120,13 @@ public class API {
 		}
 	}
 	
-	public static String postRequest(String path, Object content) throws IOException {
-        HttpURLConnection conn = (HttpsURLConnection) new URL("https://" + reqDomain + "/" + path).openConnection();
-        conn.setRequestMethod("POST");
+	public static String otherRequest(String method, String path, Object content) throws IOException {
+        return otherRequest(method, new URL("https://" + reqDomain + "/" + path), content);
+	}
+	
+	public static String otherRequest(String method, URL path, Object content) throws IOException {
+		HttpURLConnection conn = (HttpURLConnection) path.openConnection();
+        conn.setRequestMethod(method);
         conn.setRequestProperty("X-Authorization", "Access_Token access_token=" + accessToken);
         conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
 
