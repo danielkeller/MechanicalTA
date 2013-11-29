@@ -1,9 +1,12 @@
 package mta.ui;
 
+import java.io.IOException;
+
 import mta.loader.*;
 import mta.qt.ClassListModel;
 import mta.test.TestRunner;
 import mta.util.Errors;
+import mta.util.Future;
 import mta.util.ResourceExtractor;
 
 import com.trolltech.qt.core.*;
@@ -11,7 +14,6 @@ import com.trolltech.qt.gui.*;
 
 public class TestView extends QObject {
 	private QListView testClassesView;
-	private InMemoryFileManager classes = null;
 	private QWidget window;
 
 	public TestView(QWidget window, QWidget container) {
@@ -37,32 +39,48 @@ public class TestView extends QObject {
 	public boolean isReady() {return readyState;}
 
 	public InMemoryFileManager getClasses() {
-		return classes;
+		return classes.get();
 	}
+	
+	private String testSrc;
 
 	@SuppressWarnings("unused")
 	private void loadTest() {
 		try {
 			setReadyState(false);
 			
-			String testSrc = QFileDialog.getExistingDirectory(
+			testSrc = QFileDialog.getExistingDirectory(
 				window, "Choose a test source directory", "");
 			if (testSrc.equals(""))
 				return;
 			
-			classes = new SourceLoader().load(testSrc);
-			
-			//temporarily load the classes to check them
-			InMemoryClassLoader testClasses = classes.getLoader();
-			testClassesView.setModel(new ClassListModel(testClasses.getClasses()));
-			for (Class<?> clazz : testClasses.getClasses())
-				if (TestRunner.isTest(clazz)) {
-					setReadyState(true);
-					break;
-				}
+			classes.start();
 		} catch (Throwable e) {
 			Errors.dieGracefully(e);
 		}
+	}
+	
+	private Future<InMemoryFileManager> classes
+		= new Future<InMemoryFileManager> (this, "updateView()") {
+			protected InMemoryFileManager evaluate() {
+				try {
+					return new SourceLoader().load(testSrc);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
+	};
+
+	@SuppressWarnings("unused")
+	private void updateView() {
+		//temporarily load the classes to check them
+		InMemoryClassLoader testClasses = classes.get().getLoader();
+		testClassesView.setModel(new ClassListModel(testClasses.getClasses()));
+		for (Class<?> clazz : testClasses.getClasses())
+			if (TestRunner.isTest(clazz)) {
+				setReadyState(true);
+				break;
+			}
 	}
 
 	@SuppressWarnings("unused")
