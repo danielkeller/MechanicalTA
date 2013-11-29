@@ -11,5 +11,6 @@
 	<classpathentry kind="lib" path="lib/junit-4.11.jar" sourcepath="lib/junit-4.11-sources.jar"/>
 	<classpathentry kind="lib" path="lib/jackson-databind-2.2.3.jar"/>
 	<classpathentry kind="lib" path="lib/jackson-annotations-2.2.3.jar"/>
+	<classpathentry kind="lib" path="images"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

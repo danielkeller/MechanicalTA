@@ -45,7 +45,7 @@ public class LoginWindow {
 		//layout
 		QGridLayout grid = new QGridLayout();
 		QLabel icon = new QLabel(window);
-		icon.setPixmap(QIcon.fromTheme("dialog-password")
+		icon.setPixmap(new QIcon("classpath:login.png")
 				.pixmap(40, 40));
 		window.setLayout(grid);
 		grid.addWidget(icon, 0, 0, 4, 1);

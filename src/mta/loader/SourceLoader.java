@@ -54,7 +54,7 @@ public class SourceLoader {
 			ZipEntry entry;
 			
 			while((entry = zip.getNextEntry()) != null) {
-				if (entry.getName().endsWith(".java") && !entry.getName().endsWith("package-info.java") )
+				if (entry.getName().endsWith(".java"))
 					fileManager.newSourceFrom(entry.getName(), zip);
 				zip.closeEntry();
 			}

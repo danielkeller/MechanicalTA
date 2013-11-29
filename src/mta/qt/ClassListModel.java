@@ -25,9 +25,11 @@ public class ClassListModel extends QAbstractListModel {
 			return classes.get(index.row()).getName();
 		else if (role == ItemDataRole.DecorationRole) {
 			if (TestRunner.isTest(classes.get(index.row())))
-				return QIcon.fromTheme("emblem-system");
+				return new QIcon("classpath:test.png");
+			else if (classes.get(index.row()).isInterface())
+				return new QIcon("classpath:interface.png");
 			else
-				return QIcon.fromTheme("application-x-executable");
+				return new QIcon("classpath:class.png");
 		}
 		else if (role == ItemDataRole.UserRole)
 			return classes.get(index.row());

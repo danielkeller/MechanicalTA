@@ -100,6 +100,9 @@ public class TestRunner {
 			sb.append("Score: " + earnedPoints + "/" + totalPoints + "\n\n");
 			
 			for (Diagnostic<? extends JavaFileObject> diag : diagnostics.getDiagnostics()) {
+				//this error is wrong
+				if (diag.getMessage(null).contains("package-info.java"))
+					continue;
 				sb.append(diag.toString());
 				sb.append("\n");
 			}

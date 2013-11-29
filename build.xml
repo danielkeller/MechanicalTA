@@ -52,8 +52,8 @@
         	<!-- Put the API jar into the main jar where we can get at it -->
             <zipfileset dir="lib" includes="mta_api.jar"/>
         	
-        	<!-- Add splashscreen -->
-        	<zipfileset dir="lib" includes="mta.png"/>
+        	<!-- Add all images -->
+            <fileset dir="images"/>
         </jar>
     	<chmod perm="+x" file="mta.jar"/>
     </target>

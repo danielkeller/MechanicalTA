@@ -135,7 +135,8 @@ public class ResultsView extends QObject {
 		
 		diags.setPlainText("");
 		for (Diagnostic<? extends JavaFileObject> diag : score.diagnostics.getDiagnostics())
-			diags.appendPlainText(diag.toString());
+			if (!diag.getMessage(null).contains("package-info.java"))
+				diags.appendPlainText(diag.toString());
 		
 		List<String> fails = new ArrayList<String>(score.result.getFailures().size()); 
 		for (Failure fail : score.result.getFailures())
