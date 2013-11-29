@@ -22,7 +22,8 @@ public class PlatformExtractor implements AutoCloseable {
 		Thread.currentThread().setContextClassLoader(urlClassLoader);
 	}
 	
-	private static String[] pfJars = {"qtjambi-linux64-gcc-4.6.3.jar", "qtjambi-linux32-gcc-4.6.3.jar", "qtjambi-win32-msvc2005-4.6.3.jar"};
+	private static String[] pfJars = {"qtjambi-linux64-gcc-4.6.3.jar", "qtjambi-linux32-gcc-4.6.3.jar",
+		"qtjambi-win32-msvc2005-4.6.3.jar", "qtjambi-macosx-gcc-4.6.3.jar"};
 
 	public void close() throws IOException {
 		for (File file : tempdir.toFile().listFiles())
